@@ -6881,11 +6881,21 @@ button.alarm-hist-row {
     transform-origin: top left;
   }
 
+  .phone:has(.map-land.open) .phone-screen > :not(.map-land) {
+    visibility: hidden;
+  }
+
   .phone:has(.map-land.open) .map-land {
-    top: 0;
-    bottom: 0;
-    left: env(safe-area-inset-top, 0px);
-    right: env(safe-area-inset-bottom, 0px);
+    inset: 0;
+  }
+
+  .phone:has(.map-land.open) .land-top {
+    left: calc(16px + env(safe-area-inset-top, 0px));
+    right: calc(16px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .phone:has(.map-land.open) .map-land-flat {
+    right: calc(22px + env(safe-area-inset-bottom, 0px));
   }
 }
 
@@ -6901,6 +6911,14 @@ button.alarm-hist-row {
     aspect-ratio: auto;
     border-radius: 0;
     box-shadow: none;
+  }
+
+  .phone:has(.map-land.open) .phone-screen > :not(.map-land) {
+    visibility: hidden;
+  }
+
+  .phone:has(.map-land.open) .map-land {
+    inset: 0;
   }
 }
 
