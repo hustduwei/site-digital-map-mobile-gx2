@@ -1,12 +1,25 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <meta name="theme-color" content="#07111e" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="工地数字地图" />
   <title>工地数字地图移动端标准版</title>
-  <link rel="stylesheet" href="css/app.css?v=20261023za82" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="preload" as="image" href="img/site-map.jpg?v=20261029d" />
+  <link rel="stylesheet" href="css/app.css?v=20261029za93" />
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", function () {
+        navigator.serviceWorker.register("sw.js", { scope: "./", updateViaCache: "none" });
+      });
+    }
+  </script>
 </head>
 <body>
   <div class="stage">
@@ -16,13 +29,13 @@
         <div class="map-land" id="mapLand" aria-hidden="true" hidden>
           <div class="map-land-stage">
             <div class="map-land-fit">
-              <img src="img/site-map.jpg" alt="工地数字地图" />
+              <img src="img/site-map.jpg?v=20261029d" alt="工地数字地图" />
               <div class="alarm-pins" id="landAlarmPins"></div>
             </div>
           </div>
           <div class="land-top">
             <div class="land-brand">
-              <div class="land-project">向阳村项目智能建造管理平台</div>
+              <div class="land-project">高新二路项目智能建造管理平台</div>
               <div class="home-progress">
                 <div class="home-progress-hd">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><path d="M12 8v4.2l3 1.6"/></svg>
@@ -167,7 +180,7 @@
                   </div>
                   <div class="home-top">
                     <div class="home-project-row">
-                      <div class="home-project">向阳村项目智能建造管理平台</div>
+                      <div class="home-project">高新二路项目智能建造管理平台</div>
                       <button class="home-full" id="btnMapFull" type="button">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M8 5H5v3M16 5h3v3M8 19H5v-3M16 19h3v-3"/></svg>
                         全屏
@@ -262,7 +275,7 @@
                   <div class="avatar">张</div>
                   <div>
                     <h3>张工 <span class="role-tag">安全员</span></h3>
-                    <p>向阳村项目智能建造管理平台</p>
+                    <p>高新二路项目智能建造管理平台</p>
                   </div>
                 </div>
                 <div class="card" id="mineMenu"></div>
@@ -318,6 +331,6 @@
       </div>
     </div>
   </div>
-  <script src="js/app.js?v=20261023za94"></script>
+  <script src="js/app.js?v=20261029za108"></script>
 </body>
 </html>

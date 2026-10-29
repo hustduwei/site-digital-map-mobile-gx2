@@ -1,0 +1,10 @@
+{
+  "name": "工地数字地图",
+  "short_name": "数字地图",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#07111e",
+  "theme_color": "#07111e",
+  "lang": "zh-CN"
+}

@@ -46,8 +46,8 @@
     { id: "talk", name: "安全讲台", group: "场内" },
     { id: "crane2", name: "2#塔吊", group: "塔吊" },
     { id: "crane4", name: "4#塔吊", group: "塔吊" }
-  ].map((c) => Object.assign(c, { img: "img/cam-crane2.jpg", pos: "" }));
-  const camShotPool = ["img/cam-crane2.jpg", "img/cam-crane2.jpg", "img/cam-crane2.jpg"];
+  ].map((c) => Object.assign(c, { img: "img/cam-crane2.jpg?v=20261029d", pos: "" }));
+  const camShotPool = ["img/cam-crane2.jpg?v=20261029d", "img/cam-crane2.jpg?v=20261029d", "img/cam-crane2.jpg?v=20261029d"];
   const camShotTimes = ["08:12", "12:36", "16:50"];
 
 
@@ -130,16 +130,24 @@
     return d;
   }
 
+  function alarmDayCount(d) {
+    const off = Math.round((startOfDay(protoToday()) - startOfDay(d)) / 86400000);
+    if (off < 0) return null;
+    if (off === 0) return latestAlarms.length;
+    const known = [8, 13, 16, 6, 3, 2];
+    if (off <= known.length) return known[off - 1];
+    const older = [5, 1, 4, 7, 2, 9, 3, 6, 0, 4, 8, 2, 5, 1, 3, 6, 2, 0, 4, 7, 3, 1, 5, 2];
+    return older[(off - known.length - 1) % older.length];
+  }
+
   function alarmTrendSvg(fillId) {
-    const hist = { "10/2": 2, "10/3": 3, "10/4": 6, "10/5": 16, "10/6": 13, "10/7": 8, "10/8": 4 };
-    const end = startOfDay(new Date());
+    const end = protoToday();
     const days = [];
     const vals = [];
     for (let i = 6; i >= 0; i--) {
       const d = addDays(end, -i);
-      const lab = (d.getMonth() + 1) + "/" + d.getDate();
-      days.push(lab);
-      vals.push(i === 0 ? latestAlarms.length : (hist[lab] != null ? hist[lab] : 3));
+      days.push((d.getMonth() + 1) + "/" + d.getDate());
+      vals.push(alarmDayCount(d));
     }
     const w = 260;
     const h = 78;
@@ -260,14 +268,14 @@
   }
 
   const inspectAlarms = [
-    { id: "trash", day: "today", src: "drone", type: "道路垃圾", title: "环境报警", desc: "场区道路发现垃圾堆放未清理！", img: "img/alarm-trash.jpg", rel: "1分钟前", at: "2026-10-08 15:21:00", geo: "114.24751233100210,30.53310211883421", pin: [32, 78], flat: [34, 86] },
-    { id: "cable", day: "today", src: "cam", type: "电缆拖地", title: "用电报警", desc: "作业面电缆拖地未架空，存在触电隐患！", img: "img/alarm-cable.jpg", rel: "3分钟前", at: "2026-10-08 15:19:00", geo: "114.24738810244102,30.53290155210933", pin: [48, 56], flat: [46, 40] },
-    { id: "net", day: "today", src: "snap", type: "安全网缺失", title: "防护报警", desc: "楼层临边安全网缺失，请立即整改！", img: "img/alarm-net.jpg", rel: "12分钟前", at: "2026-10-08 15:10:00", geo: "114.24742027911455,30.53296304904549", pin: [22, 48, "left"], flat: [20, 34, "left"] },
-    { id: "soil", day: "today", src: "drone", type: "裸土未覆盖", title: "扬尘报警", desc: "场区裸土未覆盖，扬尘风险较高！", img: "img/alarm-soil.jpg", rel: "1小时前", at: "2026-10-08 14:22:00", geo: "114.24760188412003,30.53322190771208", pin: [66, 62], flat: [60, 26] },
-    { id: "h-net", day: "hist", src: "snap", type: "安全网缺失", title: "防护报警", desc: "3#楼作业面临边安全网破损缺失。", img: "img/alarm-net.jpg", rel: "昨天 09:30", at: "2026-09-30 09:30:00", geo: "114.24742027911455,30.53296304904549" },
-    { id: "h-trash", day: "hist", src: "drone", type: "道路垃圾", title: "环境报警", desc: "场区北侧道路垃圾堆放未及时清运。", img: "img/alarm-trash.jpg", rel: "10/7 16:20", at: "2026-10-07 16:20:00", geo: "114.24749822001145,30.53308044122890" },
-    { id: "h-cable", day: "hist", src: "cam", type: "电缆拖地", title: "用电报警", desc: "钢筋加工区电缆拖地，存在漏电风险。", img: "img/alarm-cable.jpg", rel: "10/6 11:08", at: "2026-10-06 11:08:00", geo: "114.24735501988210,30.53284411902341" },
-    { id: "h-soil", day: "hist", src: "drone", type: "裸土未覆盖", title: "扬尘报警", desc: "基坑周边裸土未覆盖，扬尘超标。", img: "img/alarm-soil.jpg", rel: "10/5 08:46", at: "2026-10-05 08:46:00", geo: "114.24757700124480,30.53319822009112" }
+    { id: "trash", day: "today", src: "drone", type: "道路垃圾", title: "环境报警", desc: "场区道路发现垃圾堆放未清理！", img: "img/alarm-trash.jpg?v=20261029d", rel: "1分钟前", at: "2026-10-08 15:21:00", geo: "114.24751233100210,30.53310211883421", pin: [32, 78], flat: [34, 86] },
+    { id: "cable", day: "today", src: "cam", type: "电缆拖地", title: "用电报警", desc: "作业面电缆拖地未架空，存在触电隐患！", img: "img/alarm-cable.jpg?v=20261029d", rel: "3分钟前", at: "2026-10-08 15:19:00", geo: "114.24738810244102,30.53290155210933", pin: [48, 56], flat: [46, 40] },
+    { id: "net", day: "today", src: "snap", type: "安全网缺失", title: "防护报警", desc: "楼层临边安全网缺失，请立即整改！", img: "img/alarm-net.jpg?v=20261029d", rel: "12分钟前", at: "2026-10-08 15:10:00", geo: "114.24742027911455,30.53296304904549", pin: [22, 48, "left"], flat: [20, 34, "left"] },
+    { id: "soil", day: "today", src: "drone", type: "裸土未覆盖", title: "扬尘报警", desc: "场区裸土未覆盖，扬尘风险较高！", img: "img/alarm-soil.jpg?v=20261029d", rel: "1小时前", at: "2026-10-08 14:22:00", geo: "114.24760188412003,30.53322190771208", pin: [66, 62], flat: [60, 26] },
+    { id: "h-net", day: "hist", src: "snap", type: "安全网缺失", title: "防护报警", desc: "3#楼作业面临边安全网破损缺失。", img: "img/alarm-net.jpg?v=20261029d", rel: "昨天 09:30", at: "2026-09-30 09:30:00", geo: "114.24742027911455,30.53296304904549" },
+    { id: "h-trash", day: "hist", src: "drone", type: "道路垃圾", title: "环境报警", desc: "场区北侧道路垃圾堆放未及时清运。", img: "img/alarm-trash.jpg?v=20261029d", rel: "10/7 16:20", at: "2026-10-07 16:20:00", geo: "114.24749822001145,30.53308044122890" },
+    { id: "h-cable", day: "hist", src: "cam", type: "电缆拖地", title: "用电报警", desc: "钢筋加工区电缆拖地，存在漏电风险。", img: "img/alarm-cable.jpg?v=20261029d", rel: "10/6 11:08", at: "2026-10-06 11:08:00", geo: "114.24735501988210,30.53284411902341" },
+    { id: "h-soil", day: "hist", src: "drone", type: "裸土未覆盖", title: "扬尘报警", desc: "基坑周边裸土未覆盖，扬尘超标。", img: "img/alarm-soil.jpg?v=20261029d", rel: "10/5 08:46", at: "2026-10-05 08:46:00", geo: "114.24757700124480,30.53319822009112" }
   ];
 
   function alarmPin(a, spot, kind, interactive) {
@@ -490,10 +498,63 @@
       <div class="people-floor-grid">${peopleFloorGrid(floors)}</div>`);
   }
 
+  function renderSquadChart() {
+    const rows = [
+      ["湖北庞源", 6, "85.70%"],
+      ["松滋艺筑管理人员", 5, "55.60%"],
+      ["松滋艺筑普工", 15, "25.90%"],
+      ["武汉工建", 3, "25.00%"],
+      ["松滋艺筑钢筋工", 6, "11.80%"],
+      ["产业工人", 1, "6.70%"],
+      ["艺筑木工班组", 4, "3.50%"],
+      ["东方装饰作业人员", 0, "0.00%"],
+      ["湖北楚峰", 0, "0.00%"]
+    ];
+    return `
+      <div class="squad-list">
+        ${rows.map(([name, n, rate]) => `
+          <div class="squad-row">
+            <div class="squad-hd"><b>${name}</b><em>${n}人</em><span>${rate}</span></div>
+            <div class="squad-bar"><i style="width:${rate}"></i></div>
+          </div>`).join("")}
+      </div>`;
+  }
+
+  function renderTradeChart() {
+    const rows = [
+      ["管理人员", 66],
+      ["普工", 28],
+      ["木工", 22],
+      ["钢筋工", 17],
+      ["杂工", 7],
+      ["架子工", 6],
+      ["司索工", 6],
+      ["模板工", 6],
+      ["砌筑工", 5],
+      ["保安", 4]
+    ];
+    const max = rows[0][1];
+    return `
+      <div class="trade-list">
+        ${rows.map(([name, n]) => `
+          <div class="trade-row">
+            <b>${name}</b>
+            <div class="trade-bar"><i style="width:${(n / max * 100).toFixed(1)}%"></i></div>
+            <em>${n}</em>
+          </div>`).join("")}
+      </div>`;
+  }
+
   function renderSafety() {
     return `
       <div class="safe-block">
-        <h4>报警预警</h4>
+        <div class="safe-hd">
+          <h4>报警预警</h4>
+          <button class="alarm-hist-btn" type="button" data-alarm-hist>
+            历史
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+          </button>
+        </div>
         <div class="home-stats alarm-row">
           <div class="home-stat alert"><b>${latestAlarms.length}</b><span>今日预警数</span></div>
           <div class="home-chart-card alarm-mini">
@@ -532,6 +593,20 @@
             <div class="people-hour-y">人数</div>
             ${peopleHourSvg()}
           </div>
+          <div class="home-chart-card trade-card">
+            <span class="home-card-lab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 18V10M10 18V6M16 18v-4M22 18H2"/></svg>今日出勤工种</span>
+            ${renderTradeChart()}
+          </div>
+          <div class="home-chart-card squad-card">
+            <div class="people-hour-hd">
+              <span class="home-card-lab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19V9M10 19V5M16 19v-6M22 19H2"/></svg>今日班组出勤</span>
+              <div class="people-hour-leg">
+                <span><i class="g"></i>出勤率</span>
+                <span><i class="b"></i>出勤人数</span>
+              </div>
+            </div>
+            ${renderSquadChart()}
+          </div>
         </div>
       </div>`;
   }
@@ -553,23 +628,23 @@
     { id: "layout", name: "现场场布" }
   ];
   const patrolPhotos = [
-    { id: "pano", cat: "pano", name: "项目全景", src: "drone", img: "img/patrol-pano.jpg", pos: "fit", time: "16:12" },
-    { id: "pano-2", cat: "pano", name: "项目鸟瞰", src: "drone", img: "img/aerial-a.jpg", pos: "fit", time: "15:48" },
-    { id: "pit-slope", cat: "pit", name: "基坑边坡", src: "drone", img: "img/aerial-b.jpg", pos: "p-l", time: "15:28" },
-    { id: "pit-edge", cat: "pit", name: "坑边", src: "drone", img: "img/aerial-b.jpg", pos: "p-r", time: "15:22" },
-    { id: "pit-drain", cat: "pit", name: "排水沟", src: "drone", img: "img/aerial-a.jpg", pos: "p-b", time: "15:16" },
-    { id: "face-work", cat: "face", name: "作业面", src: "drone", img: "img/patrol-face.jpg", pos: "fit", time: "14:55" },
-    { id: "face-scaffold", cat: "face", name: "外架/悬挑架", src: "drone", img: "img/aerial-b.jpg", pos: "p-tl", time: "14:48" },
-    { id: "equip-crane", cat: "equip", name: "塔机", src: "drone", img: "img/patrol-crane.jpg", pos: "fit", time: "16:50" },
-    { id: "equip-crane-2", cat: "equip", name: "塔吊", src: "drone", img: "img/patrol-crane-2.jpg", pos: "fit", time: "16:55" },
-    { id: "equip-lift", cat: "equip", name: "施工电梯", src: "cam", img: "img/cam-crane2.jpg", pos: "p-r", time: "16:42" },
-    { id: "yard-rebar", cat: "yard", name: "钢筋加工棚", src: "cam", img: "img/cam-crane2.jpg", pos: "p-b", time: "16:36" },
-    { id: "yard-form", cat: "yard", name: "模板加工区", src: "cam", img: "img/cam-crane2.jpg", pos: "p-t", time: "16:28" },
-    { id: "yard-stock", cat: "yard", name: "堆场", src: "drone", img: "img/patrol-yard.jpg", pos: "fit", time: "16:48" },
-    { id: "layout", cat: "layout", name: "现场场布", src: "drone", img: "img/patrol-layout.jpg", pos: "fit", time: "16:18" },
-    { id: "layout-2", cat: "layout", name: "场区鸟瞰", src: "drone", img: "img/patrol-layout-2.jpg", pos: "fit", time: "16:26" },
-    { id: "layout-road", cat: "layout", name: "道路", src: "drone", img: "img/patrol-road.jpg", pos: "fit", time: "16:34" },
-    { id: "layout-power", cat: "layout", name: "配电箱", src: "drone", img: "img/patrol-power.jpg", pos: "fit", time: "16:40" }
+    { id: "pano", cat: "pano", name: "项目全景", src: "drone", img: "img/patrol-pano.jpg?v=20261029d", pos: "fit", time: "16:12" },
+    { id: "pano-2", cat: "pano", name: "项目鸟瞰", src: "drone", img: "img/aerial-a.jpg?v=20261029d", pos: "fit", time: "15:48" },
+    { id: "pit-slope", cat: "pit", name: "基坑边坡", src: "drone", img: "img/aerial-b.jpg?v=20261029d", pos: "p-l", time: "15:28" },
+    { id: "pit-edge", cat: "pit", name: "坑边", src: "drone", img: "img/aerial-b.jpg?v=20261029d", pos: "p-r", time: "15:22" },
+    { id: "pit-drain", cat: "pit", name: "排水沟", src: "drone", img: "img/aerial-a.jpg?v=20261029d", pos: "p-b", time: "15:16" },
+    { id: "face-work", cat: "face", name: "作业面", src: "drone", img: "img/patrol-face.jpg?v=20261029d", pos: "fit", time: "14:55" },
+    { id: "face-scaffold", cat: "face", name: "外架/悬挑架", src: "drone", img: "img/aerial-b.jpg?v=20261029d", pos: "p-tl", time: "14:48" },
+    { id: "equip-crane", cat: "equip", name: "塔机", src: "drone", img: "img/patrol-crane.jpg?v=20261029d", pos: "fit", time: "16:50" },
+    { id: "equip-crane-2", cat: "equip", name: "塔吊", src: "drone", img: "img/patrol-crane-2.jpg?v=20261029d", pos: "fit", time: "16:55" },
+    { id: "equip-lift", cat: "equip", name: "施工电梯", src: "cam", img: "img/cam-crane2.jpg?v=20261029d", pos: "p-r", time: "16:42" },
+    { id: "yard-rebar", cat: "yard", name: "钢筋加工棚", src: "cam", img: "img/cam-crane2.jpg?v=20261029d", pos: "p-b", time: "16:36" },
+    { id: "yard-form", cat: "yard", name: "模板加工区", src: "cam", img: "img/cam-crane2.jpg?v=20261029d", pos: "p-t", time: "16:28" },
+    { id: "yard-stock", cat: "yard", name: "堆场", src: "drone", img: "img/patrol-yard.jpg?v=20261029d", pos: "fit", time: "16:48" },
+    { id: "layout", cat: "layout", name: "现场场布", src: "drone", img: "img/patrol-layout.jpg?v=20261029d", pos: "fit", time: "16:18" },
+    { id: "layout-2", cat: "layout", name: "场区鸟瞰", src: "drone", img: "img/patrol-layout-2.jpg?v=20261029d", pos: "fit", time: "16:26" },
+    { id: "layout-road", cat: "layout", name: "道路", src: "drone", img: "img/patrol-road.jpg?v=20261029d", pos: "fit", time: "16:34" },
+    { id: "layout-power", cat: "layout", name: "配电箱", src: "drone", img: "img/patrol-power.jpg?v=20261029d", pos: "fit", time: "16:40" }
   ];
   let patrolCat = "pano";
 
@@ -640,33 +715,43 @@
   }
 
   const siteEquip = [
-    { id: "crane", name: "智能塔机", value: "18.58t", metric: "今日吊重", ico: "crane",
+    { id: "build", name: "造楼机", value: "1次", metric: "累计顶升次数", ico: "climb",
+      units: [{ name: "造楼机", on: true, rows: [] }] },
+    { id: "crane", name: "5G塔机", value: "1.87t", metric: "今日吊重", ico: "crane", page: "crane",
       units: [
-        { name: "1#塔机", on: true, rows: [["今日吊次", "10次"], ["今日吊重", "10.00t"]] },
-        { name: "2#塔机", on: true, rows: [["今日吊次", "9次"], ["今日吊重", "5.05t"]] },
-        { name: "3#塔机", on: true, rows: [["今日吊次", "7次"], ["今日吊重", "3.53t"]] }
+        { name: "1#塔机", on: true, rows: [] },
+        { name: "2#塔机", on: true, rows: [] },
+        { name: "3#塔机", on: true, rows: [] },
+        { name: "4#塔机", on: true, rows: [] }
       ] },
-    { id: "lift", name: "智能电梯", value: "137次", metric: "今日循环次数", ico: "lift",
+    { id: "lift", name: "智能电梯", value: "2min", metric: "累计运行时间", ico: "lift", page: "lift",
       units: [
-        { name: "智能电梯1-1", on: true, rows: [["今日循环次数", "86次"], ["今日运行时长", "6.4h"]] },
-        { name: "智能电梯1-2", on: false, rows: [["今日循环次数", "18次"], ["今日运行时长", "1.6h"]] },
-        { name: "智能电梯2-1", on: false, rows: [["今日循环次数", "9次"], ["今日运行时长", "0.8h"]] },
-        { name: "智能电梯2-2", on: true, rows: [["今日循环次数", "24次"], ["今日运行时长", "2.1h"]] }
+        { name: "1", on: true, rows: [] },
+        { name: "2", on: true, rows: [] },
+        { name: "3", on: false, rows: [] },
+        { name: "4", on: false, rows: [] },
+        { name: "5", on: false, rows: [] },
+        { name: "6", on: false, rows: [] },
+        { name: "7", on: false, rows: [] }
       ] },
-    { id: "drone", name: "无人机", value: "12次", metric: "今日作业次数", ico: "drone",
-      units: [{ name: "无人机", on: true, rows: [["今日作业次数", "12次"]] }] },
-    { id: "climb", name: "智能爬架", value: "21m", metric: "爬升高度", ico: "climb",
-      units: [{ name: "智能爬架", on: true, rows: [["爬升高度", "21m"]] }] },
-    { id: "grind", name: "地砖研磨机器人", value: "5次", metric: "今日作业次数", ico: "robot",
-      units: [{ name: "地砖研磨机器人", on: true, rows: [["今日作业次数", "5次"]] }] },
-    { id: "plaster", name: "抹灰机器人", value: "4次", metric: "今日作业次数", ico: "robot",
-      units: [{ name: "抹灰机器人", on: true, rows: [["今日作业次数", "4次"]] }] },
-    { id: "measure", name: "测量机器人", value: "7次", metric: "今日作业次数", ico: "robot",
-      units: [{ name: "测量机器人", on: true, rows: [["今日作业次数", "7次"]] }] },
-    { id: "spray", name: "喷涂机器人", value: "9次", metric: "今日作业次数", ico: "robot",
-      units: [{ name: "喷涂机器人", on: true, rows: [["今日作业次数", "9次"]] }] },
-    { id: "level", name: "混凝土整平机器人", value: "3次", metric: "今日作业次数", ico: "robot",
-      units: [{ name: "混凝土整平机器人", on: true, rows: [["今日作业次数", "3次"]] }] }
+    { id: "car", name: "无人车", value: "13", metric: "今日作业次数", ico: "robot",
+      units: [
+        { name: "1", on: true, rows: [] },
+        { name: "2", on: true, rows: [] },
+        { name: "3", on: false, rows: [] }
+      ] },
+    { id: "digger", name: "远控挖机", value: "3", metric: "今日作业次数", ico: "robot",
+      units: [{ name: "远控挖机", on: true, rows: [] }] },
+    { id: "drone", name: "无人机", value: "0次", metric: "今日作业次数", ico: "drone", page: "uav",
+      units: [{ name: "无人机", on: false, rows: [] }] },
+    { id: "panel", name: "条板机器人", value: "0次", metric: "今日装板次数", ico: "robot",
+      units: [{ name: "条板机器人", on: false, rows: [] }] },
+    { id: "level", name: "整平机器人", value: "240.76㎡", metric: "累计作业面积", ico: "robot",
+      units: [{ name: "整平机器人", on: true, rows: [] }] },
+    { id: "scan", name: "3D扫描机器人", value: "3", metric: "今日作业次数", ico: "robot",
+      units: [{ name: "3D扫描机器人", on: true, rows: [] }] },
+    { id: "weigh", name: "智能地磅", value: "0.00吨", metric: "今日总重", ico: "scale",
+      units: [{ name: "智能地磅", on: true, rows: [] }] }
   ];
 
   function equipCount(d) {
@@ -724,30 +809,26 @@
       </div>
       <div class="eq-grid">${siteEquip.map((d) => {
         const c = equipCount(d);
-        const drill = c.total > 1;
-        const page = d.id === "drone" ? "uav" : d.id === "lift" ? "lift" : d.id === "crane" ? "crane" : "";
-        const open = drill || page;
+        const page = d.page || "";
         const attrs = page === "uav"
           ? ` data-uav="1" aria-label="无人机，点击进入控制"`
           : page === "lift"
-              ? ` data-lift="1" aria-label="智能电梯，点击查看明细"`
-              : page === "crane"
-                ? ` data-crane="1" aria-label="智能塔机，点击查看明细"`
-                : drill
-                  ? ` data-eq="${d.id}" aria-label="${d.name}，点击展开明细"`
-                  : "";
+            ? ` data-lift="1" aria-label="智能电梯，点击查看明细"`
+            : page === "crane"
+              ? ` data-crane="1" aria-label="5G塔机，点击查看明细"`
+              : "";
         return `
-        <button class="eq-card${open ? " drill" : ""}" type="button"${attrs}>
+        <button class="eq-card${page ? " drill" : ""}" type="button"${attrs}>
           <div class="eq-hd">
             <strong>${d.name}</strong>
             <i class="eq-dot ${c.st}"></i>
-            ${drill ? `<em class="${c.on === c.total ? "is-full" : "is-part"}"><span>${c.on}</span><i>/${c.total}</i></em>` : ""}
+            ${c.total > 1 ? `<em class="${c.on === c.total ? "is-full" : "is-part"}"><span>${c.on}</span><i>/${c.total}</i></em>` : ""}
           </div>
           <div class="eq-val">
             <b>${d.value}</b>
             <span>${d.metric}</span>
           </div>
-          ${open ? `<span class="eq-more" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M10 6l6 6-6 6"/></svg></span>` : ""}
+          ${page ? `<span class="eq-more" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M10 6l6 6-6 6"/></svg></span>` : ""}
         </button>`;
       }).join("")}</div>`;
   }
@@ -756,14 +837,14 @@
   let uavRec = false;
   let uavRoute = "daily";
   const uavRoutes = [
-    { id: "daily", name: "向阳村日常巡航", meta: "全场航线 · 约 18 分钟" },
+    { id: "daily", name: "高新二路日常巡航", meta: "全场航线 · 约 18 分钟" },
     { id: "crane", name: "塔吊巡查航线", meta: "塔吊作业区 · 约 8 分钟" },
     { id: "face", name: "作业面定点航线", meta: "主体作业面 · 约 6 分钟" },
     { id: "loop", name: "场区环绕航线", meta: "基坑一周 · 约 12 分钟" }
   ];
 
   const uavTodayTasks = [
-    { time: "08:30", name: "向阳村日常巡航", state: "执行中", pct: 62 },
+    { time: "08:30", name: "高新二路日常巡航", state: "执行中", pct: 62 },
     { time: "10:00", name: "塔吊巡查航线", state: "待执行" },
     { time: "14:30", name: "作业面定点航线", state: "已完成" }
   ];
@@ -928,7 +1009,7 @@
         </div>`
       : `
         <div class="uav-stage">
-          <img src="img/patrol-pano.jpg" alt="无人机实时画面" />
+          <img src="img/patrol-pano.jpg?v=20261029d" alt="无人机实时画面" />
           ${uavTools()}
         </div>`;
     const fly = `
@@ -1282,7 +1363,7 @@
     return `
       <section class="uav-block">
         <h4>昨日作业总结</h4>
-        <p class="report-date">${m.date} · 向阳村项目</p>
+        <p class="report-date">${m.date} · 高新二路项目</p>
         <div class="report-kpis">
           <div class="report-kpi"><span>合计循环次数</span><b>${m.trips}次</b></div>
           <div class="report-kpi"><span>合计载重</span><b>${m.load}t</b></div>
@@ -1303,7 +1384,7 @@
     const m = liftReportModel();
     const lines = [
       `电梯日报 ${m.date}`,
-      "向阳村项目",
+      "高新二路项目",
       "",
       "昨日作业总结",
       ...liftReportNotes(m),
@@ -1845,7 +1926,7 @@
     return `
       <section class="uav-block">
         <h4>昨日作业总结</h4>
-        <p class="report-date">${m.date} · 向阳村项目</p>
+        <p class="report-date">${m.date} · 高新二路项目</p>
         <div class="report-kpis">
           <div class="report-kpi"><span>合计吊次</span><b>${m.trips}次</b></div>
           <div class="report-kpi"><span>合计吊重</span><b>${m.weight}t</b></div>
@@ -1866,7 +1947,7 @@
     const m = craneReportModel();
     const lines = [
       `塔机日报 ${m.date}`,
-      "向阳村项目",
+      "高新二路项目",
       "",
       "昨日作业总结",
       ...craneReportNotes(m),
@@ -2123,8 +2204,8 @@
       </div>
       <div class="alarm-info">
         <h4>基础信息</h4>
-        <div class="alarm-kv"><span>项目名称</span><em>中建三局-向阳村项目</em></div>
-        <div class="alarm-kv"><span>任务名称</span><em>向阳村-三维(加密)</em></div>
+        <div class="alarm-kv"><span>项目名称</span><em>中建三局-高新二路项目</em></div>
+        <div class="alarm-kv"><span>任务名称</span><em>高新二路-三维(加密)</em></div>
         <div class="alarm-kv"><span>检测时间</span><em>${a.at}</em></div>
         <div class="alarm-kv"><span>预警来源</span><em>${src.tag}</em></div>
         <h4>识别结果</h4>
@@ -2155,6 +2236,126 @@
     syncChrome();
   }
 
+  const ALARM_POOL = [
+    { src: "drone", type: "道路垃圾", title: "环境报警", desc: "场区道路发现垃圾堆放未清理！", img: "img/alarm-trash.jpg?v=20261029d", geo: "114.24751233100210,30.53310211883421" },
+    { src: "cam", type: "电缆拖地", title: "用电报警", desc: "作业面电缆拖地未架空，存在触电隐患！", img: "img/alarm-cable.jpg?v=20261029d", geo: "114.24738810244102,30.53290155210933" },
+    { src: "snap", type: "安全网缺失", title: "防护报警", desc: "楼层临边安全网缺失，请立即整改！", img: "img/alarm-net.jpg?v=20261029d", geo: "114.24742027911455,30.53296304904549" },
+    { src: "drone", type: "裸土未覆盖", title: "扬尘报警", desc: "场区裸土未覆盖，扬尘风险较高！", img: "img/alarm-soil.jpg?v=20261029d", geo: "114.24760188412003,30.53322190771208" },
+    { src: "drone", type: "道路垃圾", title: "环境报警", desc: "场区北侧道路垃圾堆放未及时清运。", img: "img/alarm-trash.jpg?v=20261029d", geo: "114.24749822001145,30.53308044122890" },
+    { src: "cam", type: "电缆拖地", title: "用电报警", desc: "钢筋加工区电缆拖地，存在漏电风险。", img: "img/alarm-cable.jpg?v=20261029d", geo: "114.24735501988210,30.53284411902341" },
+    { src: "snap", type: "安全网缺失", title: "防护报警", desc: "3#楼作业面临边安全网破损缺失。", img: "img/alarm-net.jpg?v=20261029d", geo: "114.24742027911455,30.53296304904549" },
+    { src: "drone", type: "裸土未覆盖", title: "扬尘报警", desc: "基坑周边裸土未覆盖，扬尘超标。", img: "img/alarm-soil.jpg?v=20261029d", geo: "114.24757700124480,30.53319822009112" }
+  ];
+  const alarmExtra = new Map();
+  let histDay = null;
+
+  function alarmById(id) {
+    return inspectAlarms.find((a) => a.id === id) || alarmExtra.get(id) || null;
+  }
+
+  function alarmDayRecords(d) {
+    if (sameDay(d, protoToday())) return latestAlarms.slice();
+    const key = dateKey(d);
+    const n = alarmDayCount(d) || 0;
+    const seeded = inspectAlarms.filter((a) => a.day === "hist" && a.at.slice(0, 10) === key);
+    const out = seeded.slice(0, n);
+    const off = Math.round((startOfDay(protoToday()) - startOfDay(d)) / 86400000);
+    for (let i = out.length; i < n; i++) {
+      const id = "day-" + key + "-" + i;
+      let rec = alarmExtra.get(id);
+      if (!rec) {
+        const tpl = ALARM_POOL[(off + i) % ALARM_POOL.length];
+        const mins = 16 * 60 + 40 - i * 22;
+        const hh = String(Math.floor(mins / 60)).padStart(2, "0");
+        const mm = String(mins % 60).padStart(2, "0");
+        rec = Object.assign({ id: id, day: "hist", at: key + " " + hh + ":" + mm + ":00", rel: hh + ":" + mm }, tpl);
+        alarmExtra.set(id, rec);
+      }
+      out.push(rec);
+    }
+    return out.sort((a, b) => (a.at < b.at ? 1 : -1));
+  }
+
+  function histAlarmItem(a) {
+    return `
+      <div class="insp-item" data-day-alarm="${a.id}" role="button">
+        <img class="insp-pic" src="${a.img}" alt="${a.type}" />
+        <div class="insp-meta">
+          <div class="insp-hd">
+            <strong>${a.title}</strong>
+            ${alarmSrcTag(a)}
+          </div>
+          <p>${a.desc}</p>
+        </div>
+        <span class="insp-time">${a.rel}</span>
+      </div>`;
+  }
+
+  function alarmHistRow(d, off) {
+    const n = alarmDayCount(d);
+    const wk = "日一二三四五六"[d.getDay()];
+    const tag = off === 0 ? " · 今天" : off === 1 ? " · 昨天" : "";
+    const body = `
+      <span>${d.getMonth() + 1}月${d.getDate()}日<em>周${wk}${tag}</em></span>
+      <b class="${n ? "" : "is-zero"}">${n}<i>次</i></b>
+      ${n ? `<svg class="alarm-hist-go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>` : ""}`;
+    if (!n) return `<div class="alarm-hist-row">${body}</div>`;
+    return `<button class="alarm-hist-row" type="button" data-hist-day="${dateKey(d)}">${body}</button>`;
+  }
+
+  function renderAlarmHist() {
+    const today = protoToday();
+    const todayList = alarmDayRecords(today);
+    const rows = [];
+    let sum = 0;
+    for (let off = 1; off <= 30; off++) {
+      const d = addDays(today, -off);
+      sum += alarmDayCount(d);
+      rows.push(alarmHistRow(d, off));
+    }
+    const wk = "日一二三四五六"[today.getDay()];
+    return `
+      <div class="alarm-hist-page">
+        <div class="alarm-hist-sum">
+          <span>今天<em>${today.getMonth() + 1}月${today.getDate()}日 · 周${wk}</em></span>
+          <b>${todayList.length}<i>条</i></b>
+        </div>
+        <div class="insp-list">${todayList.map(histAlarmItem).join("")}</div>
+        <div class="alarm-hist-day-hd">更早日期<span>近30日 ${sum} 次</span></div>
+        <div class="alarm-hist-list">${rows.join("")}</div>
+      </div>`;
+  }
+
+  function renderAlarmHistDay(d) {
+    const list = alarmDayRecords(d);
+    const wk = "日一二三四五六"[d.getDay()];
+    const yest = sameDay(d, addDays(protoToday(), -1));
+    return `
+      <div class="alarm-hist-page">
+        <div class="alarm-hist-sum">
+          <span>${d.getMonth() + 1}月${d.getDate()}日<em>周${wk}${yest ? " · 昨天" : ""}</em></span>
+          <b>${list.length}<i>条</i></b>
+        </div>
+        ${list.length
+          ? `<div class="insp-list">${list.map(histAlarmItem).join("")}</div>`
+          : `<div class="insp-empty">该日暂无预警记录</div>`}
+      </div>`;
+  }
+
+  function openAlarmHist() {
+    histDay = null;
+    subBack = null;
+    subpage.classList.remove("is-alarm", "is-dark");
+    paintSub("历史预警", renderAlarmHist());
+  }
+
+  function openAlarmHistDay(d) {
+    histDay = startOfDay(d);
+    subBack = openAlarmHist;
+    subpage.classList.remove("is-alarm", "is-dark");
+    paintSub((histDay.getMonth() + 1) + "月" + histDay.getDate() + "日预警", renderAlarmHistDay(histDay));
+  }
+
   function openInspectList(tab) {
     if (tab === "today" || tab === "hist") inspTab = tab;
     subBack = null;
@@ -2163,9 +2364,9 @@
   }
 
   function openAlarmDetail(id, fromList) {
-    const a = inspectAlarms.find((x) => x.id === id);
+    const a = alarmById(id);
     if (!a) return;
-    subBack = fromList ? openInspectList : null;
+    subBack = typeof fromList === "function" ? fromList : (fromList ? openInspectList : null);
     subpage.classList.remove("is-dark");
     subpage.classList.add("is-alarm");
     paintSub("预警详情", renderAlarmDetail(a));
@@ -2379,6 +2580,18 @@
       else hideInspCal();
       return;
     }
+    const dayItem = e.target.closest("[data-day-alarm]");
+    if (dayItem) {
+      const backTo = histDay ? () => openAlarmHistDay(histDay) : openAlarmHist;
+      openAlarmDetail(dayItem.dataset.dayAlarm, backTo);
+      return;
+    }
+    const dayRow = e.target.closest("[data-hist-day]");
+    if (dayRow) {
+      const parts = dayRow.dataset.histDay.split("-").map(Number);
+      openAlarmHistDay(new Date(parts[0], parts[1] - 1, parts[2]));
+      return;
+    }
     const item = e.target.closest("[data-alarm]");
     if (item) openAlarmDetail(item.dataset.alarm, true);
   });
@@ -2534,6 +2747,11 @@
   });
 
   document.getElementById("homePanels").addEventListener("click", (e) => {
+    const histBtn = e.target.closest("[data-alarm-hist]");
+    if (histBtn) {
+      openAlarmHist();
+      return;
+    }
     const uavBtn = e.target.closest("[data-uav]");
     if (uavBtn) {
       openUavPage();
@@ -2927,7 +3145,7 @@
   const airCalGrid = document.getElementById("airCalGrid");
   const airCalPrev = document.getElementById("airCalPrev");
   const airCalNext = document.getElementById("airCalNext");
-  const airImgs = ["img/aerial-a.jpg", "img/aerial-b.jpg"];
+  const airImgs = ["img/aerial-a.jpg?v=20261029d", "img/aerial-b.jpg?v=20261029d"];
   const airTimes = ["07:22", "08:15", "09:08", "10:32", "11:46", "13:18", "14:55", "16:12", "17:38", "18:21"];
   const airPos = ["pos-tl", "pos-tr", "pos-c", "pos-bl", "pos-br", "pos-l", "pos-r", "pos-t", "pos-b", "pos-c"];
   let airDate = startOfDay(new Date());
@@ -3264,7 +3482,7 @@
     const btn = document.getElementById("btnMapFlat");
     mapLand.classList.toggle("is-flat", on);
     if (img) {
-      img.src = on ? "img/site-flat.jpg" : "img/site-map.jpg";
+      img.src = on ? "img/site-flat.jpg?v=20261029d" : "img/site-map.jpg?v=20261029d";
       img.alt = on ? "工地二维地图" : "工地数字地图";
     }
     if (btn) {
@@ -3273,11 +3491,27 @@
     }
   }
 
+  function handheldMap() {
+    return window.matchMedia("(pointer: coarse) and ((max-width: 900px) or (max-height: 520px))").matches;
+  }
+
+  function lockMapLandscape() {
+    if (!handheldMap() || !screen.orientation || !screen.orientation.lock) return;
+    screen.orientation.lock("landscape").catch(() => {});
+  }
+
+  function unlockMapLandscape() {
+    try {
+      if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock();
+    } catch (err) { /* 浏览器不允许解锁时保持页面自己的横屏布局 */ }
+  }
+
   function openMapLand() {
     phone.classList.add("is-landscape");
     mapLand.hidden = false;
     mapLand.classList.add("open");
     mapLand.setAttribute("aria-hidden", "false");
+    lockMapLandscape();
     syncChrome();
   }
 
@@ -3287,6 +3521,7 @@
     mapLand.classList.remove("open");
     mapLand.setAttribute("aria-hidden", "true");
     mapLand.hidden = true;
+    unlockMapLandscape();
     syncChrome();
   }
 
