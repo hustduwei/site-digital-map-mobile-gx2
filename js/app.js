@@ -715,9 +715,7 @@
   }
 
   const siteEquip = [
-    { id: "build", name: "造楼机", value: "1次", metric: "累计顶升次数", ico: "climb",
-      units: [{ name: "造楼机", on: true, rows: [] }] },
-    { id: "crane", name: "5G塔机", value: "1.87t", metric: "今日吊重", ico: "crane", page: "crane",
+    { id: "crane", name: "智能塔机", value: "1.87t", metric: "今日吊重", ico: "crane", page: "crane",
       units: [
         { name: "1#塔机", on: true, rows: [] },
         { name: "2#塔机", on: true, rows: [] },
@@ -734,6 +732,10 @@
         { name: "6", on: false, rows: [] },
         { name: "7", on: false, rows: [] }
       ] },
+    { id: "drone", name: "无人机", value: "0次", metric: "今日作业次数", ico: "drone", page: "uav",
+      units: [{ name: "无人机", on: false, rows: [] }] },
+    { id: "build", name: "造楼机", value: "1次", metric: "累计顶升次数", ico: "climb",
+      units: [{ name: "造楼机", on: true, rows: [] }] },
     { id: "car", name: "无人车", value: "13", metric: "今日作业次数", ico: "robot",
       units: [
         { name: "1", on: true, rows: [] },
@@ -742,8 +744,6 @@
       ] },
     { id: "digger", name: "远控挖机", value: "3", metric: "今日作业次数", ico: "robot",
       units: [{ name: "远控挖机", on: true, rows: [] }] },
-    { id: "drone", name: "无人机", value: "0次", metric: "今日作业次数", ico: "drone", page: "uav",
-      units: [{ name: "无人机", on: false, rows: [] }] },
     { id: "panel", name: "条板机器人", value: "0次", metric: "今日装板次数", ico: "robot",
       units: [{ name: "条板机器人", on: false, rows: [] }] },
     { id: "level", name: "整平机器人", value: "240.76㎡", metric: "累计作业面积", ico: "robot",
@@ -815,7 +815,7 @@
           : page === "lift"
             ? ` data-lift="1" aria-label="智能电梯，点击查看明细"`
             : page === "crane"
-              ? ` data-crane="1" aria-label="5G塔机，点击查看明细"`
+              ? ` data-crane="1" aria-label="智能塔机，点击查看明细"`
               : "";
         return `
         <button class="eq-card${page ? " drill" : ""}" type="button"${attrs}>

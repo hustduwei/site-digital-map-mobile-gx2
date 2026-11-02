@@ -1,10 +1,10 @@
-const VERSION = "20261029p";
+const VERSION = "20261029q";
 const CACHE = "site-map-" + VERSION;
 
 const PRECACHE = [
   "./index.html",
   "./css/app.css?v=20261029za94",
-  "./js/app.js?v=20261029za108",
+  "./js/app.js?v=20261029za109",
   "./img/site-map.jpg?v=20261029d",
   "./img/site-flat.jpg?v=20261029d",
   "./img/alarm-trash.jpg?v=20261029d",
