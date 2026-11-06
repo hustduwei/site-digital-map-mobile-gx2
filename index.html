@@ -12,7 +12,7 @@
   <title>工地数字地图移动端标准版</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="preload" as="image" href="img/site-map.jpg?v=20261029d" />
-  <link rel="stylesheet" href="css/app.css?v=20261029za94" />
+  <link rel="stylesheet" href="css/app.css?v=20261029za136" />
   <script>
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", function () {
@@ -36,13 +36,6 @@
           <div class="land-top">
             <div class="land-brand">
               <div class="land-project">高新二路项目智能建造管理平台</div>
-              <div class="home-progress">
-                <div class="home-progress-hd">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><path d="M12 8v4.2l3 1.6"/></svg>
-                  项目总进度 <b>53%</b>
-                </div>
-                <span class="home-progress-bar"><i></i></span>
-              </div>
             </div>
             <div class="land-actions">
               <button class="map-land-back" id="btnMapBack" type="button">
@@ -186,29 +179,22 @@
                         全屏
                       </button>
                     </div>
-                    <div class="home-progress">
-                      <div class="home-progress-hd">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><path d="M12 8v4.2l3 1.6"/></svg>
-                        项目总进度 <b>53%</b>
-                      </div>
-                      <span class="home-progress-bar"><i></i></span>
-                    </div>
                   </div>
                 </div>
                 <div class="home-sheet" id="homeSheet">
                   <div class="home-sheet-handle" id="sheetHandle" role="button" aria-label="拖动调整浮窗"></div>
                   <div class="home-mods" id="homeMods">
                     <button class="home-mod on" data-mod="safety" type="button">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8.2 4.6H4.8v3.4M15.8 4.6h3.4v3.4M8.2 19.4H4.8v-3.4M15.8 19.4h3.4v-3.4"/><path d="M7.2 12s2.2-3.4 4.8-3.4 4.8 3.4 4.8 3.4-2.2 3.4-4.8 3.4S7.2 12 7.2 12z"/><circle cx="12" cy="12" r="1.5"/></svg>
-                      智巡
+                      <span class="home-mod-main"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.6 19 6.2v5.3c0 4.1-2.7 7-7 8.7-4.3-1.7-7-4.6-7-8.7V6.2L12 3.6z"/></svg>智巡</span>
+                      <small>风险预警・人员动态</small>
                     </button>
                     <button class="home-mod" data-mod="progress" type="button">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6.4" y="5.2" width="11.2" height="14.4" rx="2"/><path d="M9.2 5.2V4.2h5.6v1"/><path d="M8.9 12.6 10.8 14.5l4.2-4.5"/></svg>
-                      智眸
+                      <span class="home-mod-main"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.8 12S6.4 7 12 7s9.2 5 9.2 5-3.6 5-9.2 5S2.8 12 2.8 12z"/><circle cx="12" cy="12" r="2.2"/></svg>智眸</span>
+                      <small>现场快照・实景核验</small>
                     </button>
                     <button class="home-mod" data-mod="equip" type="button">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6.4" y="7.6" width="11.2" height="9.4" rx="2.2"/><circle cx="10" cy="12.2" r="1.15"/><circle cx="14" cy="12.2" r="1.15"/><path d="M12 7.6V4.8M12 4.8h2.4M8.4 17v2.4M15.6 17v2.4"/></svg>
-                      智控
+                      <span class="home-mod-main"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 8h16M4 16h16"/><circle cx="9" cy="8" r="2.1"/><circle cx="15" cy="16" r="2.1"/></svg>智控</span>
+                      <small>集群管控・数驱作业</small>
                     </button>
                   </div>
                   <div class="home-panels" id="homePanels"></div>
@@ -328,9 +314,23 @@
           </nav>
         </div>
         <div class="toast" id="toast"></div>
-      </div>
+        </div>
+        <div class="photo-stage" id="photoStage" hidden>
+          <div class="photo-stage-bar">
+            <button type="button" id="photoClose">关闭</button>
+            <strong id="photoTitle"></strong>
+            <div class="photo-stage-acts">
+              <button type="button" id="photoHd">原图</button>
+              <button type="button" id="photoSave">下载</button>
+            </div>
+          </div>
+          <div class="photo-stage-view" id="photoView">
+            <img id="photoImg" alt="" draggable="false" />
+          </div>
+          <p class="photo-stage-tip">双指缩放，单指拖动</p>
+        </div>
     </div>
   </div>
-  <script src="js/app.js?v=20261029za109"></script>
+  <script src="js/app.js?v=20261029za154"></script>
 </body>
 </html>

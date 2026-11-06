@@ -306,7 +306,7 @@
     const today = inspectAlarms.filter((a) => a.day === "today" && a.pin);
     const home = document.getElementById("homeAlarmPins");
     const land = document.getElementById("landAlarmPins");
-    if (home) home.innerHTML = today.map((a) => alarmPin(a, homeSpot(a.pin), "home", false)).join("");
+    if (home) home.innerHTML = today.map((a) => alarmPin(a, homeSpot(a.pin), "home", true)).join("");
     if (land) land.innerHTML = today.map((a) => alarmPin(a, a.pin, "map", true) + alarmPin(a, a.flat, "flat", true)).join("");
   }
 
@@ -436,19 +436,20 @@
     };
   }
 
-  const b2Occupied = { 1: 5, 4: 1 };
-  const b2FloorCount = 5;
+  function peopleBuilding(id, name, occupied, floorCount) {
+    const children = Array.from({ length: floorCount }, (_, i) => {
+      const n = i + 1;
+      return { id: id + "-" + n, name: n + "F", count: occupied[n] || 0 };
+    });
+    const count = children.reduce((sum, floor) => sum + floor.count, 0);
+    return { id, name, count, children };
+  }
+
   const peopleTree = [
     { id: "yard", name: "场布", count: 38 },
-    {
-      id: "b2",
-      name: "2#楼",
-      count: 6,
-      children: Array.from({ length: b2FloorCount }, (_, i) => {
-        const n = i + 1;
-        return { id: "b2-" + n, name: n + "F", count: b2Occupied[n] || 0 };
-      })
-    },
+    peopleBuilding("b1", "1#楼", { 1: 3, 2: 1 }, 5),
+    peopleBuilding("b2", "2#楼", { 1: 5, 4: 1 }, 5),
+    peopleBuilding("b3", "3#楼", { 1: 2, 3: 1 }, 5),
     { id: "base", name: "地下室", count: 2 }
   ];
 
@@ -568,7 +569,7 @@
         <h4>人员管理</h4>
         <div class="safe-stack">
           <div class="home-chart-card crew-card">
-            <span class="home-card-lab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="2.2"/><circle cx="16" cy="9.2" r="1.7"/><path d="M4.6 17.4c.7-2.3 2.4-3.6 4.4-3.6s3.7 1.3 4.4 3.6"/><path d="M13.4 14.4c1.5-.4 3 .1 4 1.6"/></svg>人员总览</span>
+            <span class="home-card-lab">人员总览</span>
             <div class="crew-overview">${[
               ["160", "人", "项目人数"],
               ["40", "人", "正在上班"],
@@ -579,27 +580,16 @@
             `).join("")}</div>
           </div>
           <div class="home-chart-card people-dist">
-            <span class="home-card-lab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20.5s5.5-4.8 5.5-9.2a5.5 5.5 0 0 0-11 0c0 4.4 5.5 9.2 5.5 9.2z"/><circle cx="12" cy="11.2" r="1.8"/></svg>人员分布</span>
+            <span class="home-card-lab">人员分布</span>
             <div id="peopleDist"></div>
           </div>
-          <div class="home-chart-card people-hour">
-            <div class="people-hour-hd">
-              <span class="home-card-lab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 16.5 8.4 11l3.3 2.6L20 6.5"/><path d="M14.5 6.5H20V12"/></svg>今日人员趋势</span>
-              <div class="people-hour-leg">
-                <span><i class="g"></i>工人</span>
-                <span><i class="b"></i>管理人员</span>
-              </div>
-            </div>
-            <div class="people-hour-y">人数</div>
-            ${peopleHourSvg()}
-          </div>
           <div class="home-chart-card trade-card">
-            <span class="home-card-lab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 18V10M10 18V6M16 18v-4M22 18H2"/></svg>今日出勤工种</span>
+            <span class="home-card-lab">今日出勤工种</span>
             ${renderTradeChart()}
           </div>
           <div class="home-chart-card squad-card">
             <div class="people-hour-hd">
-              <span class="home-card-lab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19V9M10 19V5M16 19v-6M22 19H2"/></svg>今日班组出勤</span>
+              <span class="home-card-lab">今日班组出勤</span>
               <div class="people-hour-leg">
                 <span><i class="g"></i>出勤率</span>
                 <span><i class="b"></i>出勤人数</span>
@@ -698,24 +688,172 @@
   function openPatrolPhoto(id) {
     const photo = patrolPhotos.find((p) => p.id === id);
     if (!photo) return;
-    const cat = patrolCatOf(photo.cat);
-    openSheet(`
-      <div class="people-pop-hd">
-        <strong id="peoplePopTitle">${photo.name}</strong>
-        <button class="people-pop-close" type="button" data-people-close aria-label="关闭">×</button>
-      </div>
-      <figure class="patrol-view">
-        <img class="${photo.pos}" src="${photo.img}" alt="${photo.name}" />
-      </figure>
-      <div class="patrol-meta">
-        <div><span>分类</span><b class="patrol-tag">${cat.name}</b></div>
-        <div><span>来源</span>${patrolSrcTag(photo.src)}</div>
-        <div><span>时间</span><b>今天 ${photo.time}</b></div>
-      </div>`);
+    openPhotoStage(photo);
   }
+
+  function patrolFile(img) {
+    return img.split("/").pop().split("?")[0];
+  }
+
+  function patrolFull(photo) {
+    return "img/hd/" + patrolFile(photo.img);
+  }
+
+  const photoViewState = {
+    photo: null,
+    hd: false,
+    scale: 1,
+    x: 0,
+    y: 0,
+    pointers: new Map(),
+    pinch: 0
+  };
+
+  function applyPhotoZoom() {
+    const img = document.getElementById("photoImg");
+    if (!img) return;
+    img.style.transform = `translate(${photoViewState.x}px, ${photoViewState.y}px) scale(${photoViewState.scale})`;
+  }
+
+  function resetPhotoZoom() {
+    photoViewState.scale = 1;
+    photoViewState.x = 0;
+    photoViewState.y = 0;
+    applyPhotoZoom();
+  }
+
+  function openPhotoStage(photo) {
+    photoViewState.photo = photo;
+    photoViewState.hd = false;
+    photoViewState.pointers.clear();
+    resetPhotoZoom();
+    document.getElementById("photoTitle").textContent = photo.name;
+    const img = document.getElementById("photoImg");
+    img.alt = photo.name;
+    img.src = photo.img;
+    const hd = document.getElementById("photoHd");
+    hd.disabled = false;
+    hd.textContent = "原图";
+    document.getElementById("photoStage").hidden = false;
+  }
+
+  function closePhotoStage() {
+    document.getElementById("photoStage").hidden = true;
+    photoViewState.photo = null;
+    photoViewState.pointers.clear();
+  }
+
+  function currentPhotoUrl() {
+    const photo = photoViewState.photo;
+    if (!photo) return "";
+    return photoViewState.hd ? patrolFull(photo) : photo.img;
+  }
+
+  async function currentPhotoBlob() {
+    const res = await fetch(currentPhotoUrl());
+    if (!res.ok) throw new Error("load");
+    return res.blob();
+  }
+
+  async function downloadCurrentPhoto() {
+    const photo = photoViewState.photo;
+    if (!photo) return;
+    const blob = await currentPhotoBlob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = photo.name + ".jpg";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1500);
+    showToast("已开始下载");
+  }
+
+  function bindPhotoStage() {
+    document.getElementById("photoClose").addEventListener("click", closePhotoStage);
+    document.getElementById("photoHd").addEventListener("click", () => {
+      const photo = photoViewState.photo;
+      if (!photo || photoViewState.hd) return;
+      photoViewState.hd = true;
+      document.getElementById("photoImg").src = patrolFull(photo);
+      const hd = document.getElementById("photoHd");
+      hd.textContent = "已是原图";
+      hd.disabled = true;
+      resetPhotoZoom();
+    });
+    document.getElementById("photoSave").addEventListener("click", () => {
+      downloadCurrentPhoto().catch(() => showToast("下载失败"));
+    });
+    const view = document.getElementById("photoView");
+    view.addEventListener("wheel", (e) => {
+      if (document.getElementById("photoStage").hidden) return;
+      e.preventDefault();
+      const next = photoViewState.scale * (e.deltaY < 0 ? 1.12 : 0.89);
+      photoViewState.scale = Math.min(4, Math.max(1, next));
+      if (photoViewState.scale === 1) {
+        photoViewState.x = 0;
+        photoViewState.y = 0;
+      }
+      applyPhotoZoom();
+    }, { passive: false });
+    view.addEventListener("dblclick", () => {
+      if (photoViewState.scale > 1) resetPhotoZoom();
+      else {
+        photoViewState.scale = 2;
+        applyPhotoZoom();
+      }
+    });
+    view.addEventListener("pointerdown", (e) => {
+      view.setPointerCapture(e.pointerId);
+      photoViewState.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (photoViewState.pointers.size === 2) photoViewState.pinch = pointerSpan();
+    });
+    view.addEventListener("pointermove", (e) => {
+      if (!photoViewState.pointers.has(e.pointerId)) return;
+      const prev = photoViewState.pointers.get(e.pointerId);
+      photoViewState.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (photoViewState.pointers.size === 2) {
+        const dist = pointerSpan();
+        if (photoViewState.pinch > 0 && dist > 0) {
+          photoViewState.scale = Math.min(4, Math.max(1, photoViewState.scale * (dist / photoViewState.pinch)));
+          if (photoViewState.scale === 1) {
+            photoViewState.x = 0;
+            photoViewState.y = 0;
+          }
+          photoViewState.pinch = dist;
+          applyPhotoZoom();
+        }
+        return;
+      }
+      if (photoViewState.scale > 1) {
+        photoViewState.x += e.clientX - prev.x;
+        photoViewState.y += e.clientY - prev.y;
+        applyPhotoZoom();
+      }
+    });
+    const endPointer = (e) => {
+      photoViewState.pointers.delete(e.pointerId);
+      photoViewState.pinch = photoViewState.pointers.size === 2 ? pointerSpan() : 0;
+    };
+    view.addEventListener("pointerup", endPointer);
+    view.addEventListener("pointercancel", endPointer);
+  }
+
+  function pointerSpan() {
+    const pts = [...photoViewState.pointers.values()];
+    if (pts.length < 2) return 0;
+    return Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+  }
+
+  bindPhotoStage();
 
   const siteEquip = [
     { id: "crane", name: "智能塔机", value: "1.87t", metric: "今日吊重", ico: "crane", page: "crane",
+      stats: [
+        { value: "1.87t", metric: "今日吊重" },
+        { value: "26次", metric: "今日吊次" }
+      ],
       units: [
         { name: "1#塔机", on: true, rows: [] },
         { name: "2#塔机", on: true, rows: [] },
@@ -732,26 +870,11 @@
         { name: "6", on: false, rows: [] },
         { name: "7", on: false, rows: [] }
       ] },
-    { id: "drone", name: "无人机", value: "0次", metric: "今日作业次数", ico: "drone", page: "uav",
+    { id: "drone", name: "无人机", value: "1/3", metric: "作业任务", ico: "drone", page: "uav",
+      jobs: { done: 1, total: 3 },
       units: [{ name: "无人机", on: false, rows: [] }] },
-    { id: "build", name: "造楼机", value: "1次", metric: "累计顶升次数", ico: "climb",
-      units: [{ name: "造楼机", on: true, rows: [] }] },
-    { id: "car", name: "无人车", value: "13", metric: "今日作业次数", ico: "robot",
-      units: [
-        { name: "1", on: true, rows: [] },
-        { name: "2", on: true, rows: [] },
-        { name: "3", on: false, rows: [] }
-      ] },
-    { id: "digger", name: "远控挖机", value: "3", metric: "今日作业次数", ico: "robot",
-      units: [{ name: "远控挖机", on: true, rows: [] }] },
-    { id: "panel", name: "条板机器人", value: "0次", metric: "今日装板次数", ico: "robot",
-      units: [{ name: "条板机器人", on: false, rows: [] }] },
-    { id: "level", name: "整平机器人", value: "240.76㎡", metric: "累计作业面积", ico: "robot",
-      units: [{ name: "整平机器人", on: true, rows: [] }] },
-    { id: "scan", name: "3D扫描机器人", value: "3", metric: "今日作业次数", ico: "robot",
-      units: [{ name: "3D扫描机器人", on: true, rows: [] }] },
-    { id: "weigh", name: "智能地磅", value: "0.00吨", metric: "今日总重", ico: "scale",
-      units: [{ name: "智能地磅", on: true, rows: [] }] }
+    { id: "climb", name: "智能爬架", value: "异常", metric: "左右倾斜", ico: "climb", page: "climb",
+      units: [{ name: "智能爬架", on: true, rows: [] }] }
   ];
 
   function equipCount(d) {
@@ -783,6 +906,28 @@
       <div class="eq-units">${equipUnits(node.units)}</div>`);
   }
 
+  const equipPic = {
+    crane: "img/eq-crane.jpg?v=20261106eq3",
+    lift: "img/eq-lift.jpg?v=20261106eq3",
+    drone: "img/eq-drone.jpg?v=20261106eq3",
+    climb: "img/eq-climb.jpg?v=20261106eq4"
+  };
+
+  function equipMark(key) {
+    const pic = equipPic[key];
+    if (pic) return `<img src="${pic}" alt="" />`;
+    return equipIco[key] || "";
+  }
+
+  const equipIco = {
+    crane: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 20h15"/><path d="M7 20V7.5h3.2V20"/><path d="M8.6 7.5H20l-3.2 6.2"/><path d="M16.8 13.7V20"/></svg>`,
+    lift: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="3.5" width="10" height="17" rx="1.4"/><path d="M12 8.2v2.4M12 8.2l-1.2-1.2M12 8.2l1.2-1.2M12 15.6v-2.4M12 15.6l-1.2 1.2M12 15.6l1.2 1.2"/></svg>`,
+    scale: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 17.5h15"/><path d="M7 17.5V9.2h10v8.3"/><path d="M9.2 9.2 12 5.8l2.8 3.4"/></svg>`,
+    drone: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="6.2" cy="6.2" r="2"/><circle cx="17.8" cy="6.2" r="2"/><circle cx="6.2" cy="17.8" r="2"/><circle cx="17.8" cy="17.8" r="2"/><path d="M8.2 6.2h7.6M8.2 17.8h7.6M6.2 8.2v7.6M17.8 8.2v7.6"/><rect x="10" y="10" width="4" height="4" rx="0.8"/></svg>`,
+    climb: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 20V5h10v15"/><path d="M7 9h10M7 13h10M7 17h10"/></svg>`,
+    robot: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="8" width="12" height="10" rx="2"/><circle cx="9.5" cy="12.2" r="1"/><circle cx="14.5" cy="12.2" r="1"/><path d="M12 8V5.5M9 18.2v1.8M15 18.2v1.8"/></svg>`
+  };
+
   function renderEquip() {
     const kinds = siteEquip.length;
     const qty = siteEquip.reduce((s, d) => s + d.units.length, 0);
@@ -811,23 +956,77 @@
         const c = equipCount(d);
         const page = d.page || "";
         const attrs = page === "uav"
-          ? ` data-uav="1" aria-label="无人机，点击进入控制"`
+          ? ` data-uav="1" aria-label="无人机，设备状态${c.on}/${c.total}，作业任务1/3，完成1次，共3次，点击进入控制"`
           : page === "lift"
             ? ` data-lift="1" aria-label="智能电梯，点击查看明细"`
             : page === "crane"
-              ? ` data-crane="1" aria-label="智能塔机，点击查看明细"`
-              : "";
+              ? ` data-crane="1" aria-label="智能塔机，在线设备${c.on}/${c.total}，今日吊重1.87t，今日吊次26次，点击查看明细"`
+              : page === "climb"
+                ? ` data-climb="1" aria-label="智能爬架，左右倾斜35/36，30号机位179.70毫米超过60毫米，前后倾斜36/36，载荷36/36，点击查看点位"`
+                : "";
+        const stats = d.stats || [{ value: d.value, metric: d.metric }];
+        const statHtml = d.jobs
+          ? `<span class="eq-val eq-online"><b><em>${d.jobs.done}<i>/${d.jobs.total}</i></em></b><span>${d.metric}</span></span>`
+          : stats.map((s) => {
+            const parts = String(s.value).match(/^([\d.]+)(.*)$/);
+            const num = parts && parts[2] ? `${parts[1]}<i class="eq-stat-unit"> ${parts[2]}</i>` : s.value;
+            return `<span class="eq-val"><b>${num}</b><span>${s.metric}</span></span>`;
+          }).join("");
+        const online = c.total > 1 || d.id === "drone"
+          ? `<span class="eq-val eq-online${c.on ? "" : " is-off"}"><b><em>${c.on}<i>/${c.total}</i></em></b><span>${d.id === "drone" ? "设备状态" : "在线设备"}</span></span>`
+          : "";
+        if (d.id === "crane") {
+          return `
+          <button class="eq-card drill is-crane" type="button"${attrs}>
+            <span class="eq-ico" aria-hidden="true">${equipMark(d.ico)}</span>
+            <span class="eq-main">
+              <span class="eq-hd"><strong>${d.name}</strong><i class="eq-dot ${c.st}"></i></span>
+              <span class="eq-vals">
+                ${online}
+                ${statHtml}
+              </span>
+            </span>
+            <span class="eq-more" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M10 6l6 6-6 6"/></svg></span>
+          </button>`;
+        }
+        if (d.id === "climb") {
+          const known = climbSensors.length;
+          const lrBad = climbSensors.filter((row) => row[5] === "lr");
+          const cell = (bad, label) => {
+            const normal = known - (bad ? lrBad.length : 0);
+            return `<span class="eq-val ${bad ? "is-bad" : "is-ok"}"><b><em>${normal}</em><i>/${known}</i></b><span>${label}</span></span>`;
+          };
+          const alert = lrBad.map((row) => `<span class="eq-alert">${row[0]}#机位 左右倾斜 ${climbUnit(row[1])}，超过 ${climbUnit("60mm")}</span>`).join("");
+          return `
+          <button class="eq-card drill is-climb" type="button"${attrs}>
+            <span class="eq-climb-top">
+              <span class="eq-ico" aria-hidden="true">${equipMark(d.ico)}</span>
+              <span class="eq-main">
+                <span class="eq-hd"><strong>${d.name}</strong><i class="eq-dot warn"></i></span>
+                <span class="eq-vals">
+                  ${cell(true, "左右倾斜")}
+                  ${cell(false, "前后倾斜")}
+                  ${cell(false, "载荷")}
+                </span>
+              </span>
+              <span class="eq-more" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M10 6l6 6-6 6"/></svg></span>
+            </span>
+            ${alert}
+          </button>`;
+        }
         return `
         <button class="eq-card${page ? " drill" : ""}" type="button"${attrs}>
-          <div class="eq-hd">
-            <strong>${d.name}</strong>
-            <i class="eq-dot ${c.st}"></i>
-            ${c.total > 1 ? `<em class="${c.on === c.total ? "is-full" : "is-part"}"><span>${c.on}</span><i>/${c.total}</i></em>` : ""}
-          </div>
-          <div class="eq-val">
-            <b>${d.value}</b>
-            <span>${d.metric}</span>
-          </div>
+          <span class="eq-ico" aria-hidden="true">${equipMark(d.ico)}</span>
+          <span class="eq-main">
+            <span class="eq-hd">
+              <strong>${d.name}</strong>
+              <i class="eq-dot ${c.st}"></i>
+            </span>
+            <span class="eq-vals">
+              ${online}
+              ${statHtml}
+            </span>
+          </span>
           ${page ? `<span class="eq-more" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M10 6l6 6-6 6"/></svg></span>` : ""}
         </button>`;
       }).join("")}</div>`;
@@ -1040,6 +1239,8 @@
   let liftTab = "11";
   let liftChartTab = "11";
   let liftChartRange = "7";
+  let liftPageTab = "live";
+  let liftReportKind = "day";
   const liftUnits = [
     {
       id: "11", tab: "1-1", name: "智能电梯1-1", on: true, status: "在线", code: "E03C1CB9F5011821",
@@ -1239,32 +1440,16 @@
   }
 
   function renderLift() {
-    const u = liftUnits.find((c) => c.id === liftTab) || liftUnits[0];
-    const tabs = liftUnits.map((c) => `
-      <button type="button" class="${c.id === u.id ? "on" : ""}" data-lift-tab="${c.id}">${liftMark()}${c.tab}</button>`).join("");
-    const meters = liftWorkMeters({
-      trips: u.todayTrips,
-      time: u.todayTime,
-      people: u.todayPeople,
-      load: u.todayLoad,
-      power: u.power,
-      work: u.work,
-      util: u.util
-    }, u);
-    return `
+    const tabs = `
+      <div class="uav-tabs">
+        <button type="button" class="${liftPageTab === "live" ? "on" : ""}" data-lift-view="live">设备实时状态</button>
+        <button type="button" class="${liftPageTab === "report" ? "on" : ""}" data-lift-view="report">作业报表</button>
+      </div>`;
+    if (liftPageTab === "report") return tabs + renderLiftReport();
+    return tabs + `
       <section class="uav-block">
-        <h4>设备实时概览</h4>
         <div class="crane-board">${liftUnits.map(renderLiftCard).join("")}</div>
-      </section>
-      <section class="uav-block">
-        <div class="uav-hd">
-          <h4>当日作业统计</h4>
-          <button class="crane-info-link" type="button" data-lift-history>历史数据</button>
-        </div>
-        <div class="crane-tabs">${tabs}</div>
-        ${meters}
-      </section>
-      ${renderLiftAnalysis()}`;
+      </section>`;
   }
 
   function openLiftInfo(id) {
@@ -1333,67 +1518,201 @@
     };
   }
 
-  function liftReportNotes(m) {
-    const lead = m.topTrips.u.id === m.topLoad.u.id
-      ? `${m.topTrips.u.tab}循环次数和载重都是四台里最高，循环 ${m.topTrips.day.trips}，载重 ${m.topTrips.day.load}。`
-      : `${m.topTrips.u.tab}循环次数最高，为 ${m.topTrips.day.trips}。${m.topLoad.u.tab}载重最高，为 ${m.topLoad.day.load}。`;
-    return [
-      `昨日 4 台电梯均有运行，合计循环次数 ${m.trips} 次，合计载重 ${m.load}t，平均利用率 ${m.util}%。`,
-      lead,
-      `${m.lowUtil.u.tab}时长利用率最低，为 ${m.lowUtil.day.util}，运行 ${m.lowUtil.day.time}，循环 ${m.lowUtil.trips.note}、载重 ${m.lowUtil.load.note}。`
+  function liftHistoryRows(u) {
+    return u.history.map((d) => ({
+      trips: cranePlainNum(d.trips),
+      load: cranePlainNum(d.load),
+      people: cranePlainNum(d.people),
+      util: cranePlainNum(d.util)
+    }));
+  }
+
+  function liftMonthRows(u) {
+    return liftChartSeries(u, 22).filter((row) => row.date !== "10-22").map((row) => ({
+      trips: row.trips,
+      load: row.load,
+      people: row.people,
+      util: row.util
+    }));
+  }
+
+  function liftSpan(days) {
+    const n = days.length || 1;
+    return {
+      trips: days.reduce((sum, d) => sum + d.trips, 0),
+      load: days.reduce((sum, d) => sum + d.load, 0),
+      people: days.reduce((sum, d) => sum + (d.people || 0), 0),
+      util: Math.round(days.reduce((sum, d) => sum + d.util, 0) / n)
+    };
+  }
+
+  function liftSpanRows(pick) {
+    return liftUnits.map((u) => ({ u, span: liftSpan(pick(u)) }));
+  }
+
+  function liftFleetLines(rows) {
+    const head = `<div class="report-line is-hd"><b>电梯</b><span>循环</span><span>载重</span><span>利用率</span><span>运送</span></div>`;
+    const body = rows.map((row) => `
+      <div class="report-line">
+        <b>${row.name}</b>
+        <span>${row.trips}</span>
+        <span>${row.load}</span>
+        <span>${row.util}</span>
+        <span>${row.people}</span>
+      </div>`).join("");
+    return head + body;
+  }
+
+  function reportExtreme(rows, key, high) {
+    return [...rows].sort((a, b) => high ? b[key] - a[key] : a[key] - b[key])[0];
+  }
+
+  function reportShare(part, total) {
+    if (!total) return 0;
+    return Math.round(part / total * 100);
+  }
+
+  function reportPoints(items) {
+    const body = items.filter(Boolean).map((item) => `
+      <li class="${item.warn ? "is-warn" : ""}"><b>${item.tag}</b><span>${item.text}</span></li>`).join("");
+    return `<div class="report-judge"><p>结论</p><ul class="report-points">${body}</ul></div>`;
+  }
+
+  function liftJudgeRows(spanRows) {
+    return spanRows.map((row) => ({
+      name: row.u.tab,
+      trips: Math.round(row.span.trips),
+      load: row.span.load,
+      people: Math.round(row.span.people),
+      util: row.span.util
+    }));
+  }
+
+  function liftConclusions(rows) {
+    const low = reportExtreme(rows, "util", false);
+    const quiet = reportExtreme(rows, "trips", false);
+    const busy = reportExtreme(rows, "trips", true);
+    const riders = reportExtreme(rows, "people", true);
+    const heavy = reportExtreme(rows, "load", true);
+    const trips = rows.reduce((sum, row) => sum + row.trips, 0);
+    const people = rows.reduce((sum, row) => sum + row.people, 0);
+    const load = rows.reduce((sum, row) => sum + row.load, 0);
+    const same = busy.name === riders.name && busy.name === heavy.name;
+    const weak = quiet.name === low.name
+      ? `${low.name} 循环 ${low.trips}次，只占 ${reportShare(low.trips, trips)}%`
+      : `${quiet.name} 循环 ${quiet.trips}次，占 ${reportShare(quiet.trips, trips)}%`;
+    const offline = liftUnits.filter((unit) => !unit.on).map((unit) => unit.tab);
+    const items = [
+      { tag: "关注", warn: true, text: `${low.name} 利用率 ${low.util}%，${rows.length}台最低` },
+      {
+        tag: "主力",
+        text: same
+          ? `${busy.name} 循环占 ${reportShare(busy.trips, trips)}% · 运送占 ${reportShare(busy.people, people)}% · 载重占 ${reportShare(heavy.load, load)}%`
+          : `${busy.name} 循环 ${busy.trips}次，占 ${reportShare(busy.trips, trips)}%`
+      },
+      { tag: "短板", warn: true, text: weak }
     ];
+    if (!same && riders.name !== busy.name) {
+      items.push({ tag: "运送", text: `${riders.name} ${riders.people}人，占 ${reportShare(riders.people, people)}%` });
+    }
+    if (offline.length) items.push({ tag: "当前", warn: true, text: `${offline.join("、")} 离线` });
+    return reportPoints(items.slice(0, 4));
+  }
+
+  function renderLiftPeriod(range, trips, load, util, note, lines) {
+    return `
+      <p class="report-date">${range}</p>
+      <div class="report-kpis">
+        <div class="report-kpi"><span>合计循环</span><b>${trips}次</b></div>
+        <div class="report-kpi"><span>合计载重</span><b>${load}t</b></div>
+        <div class="report-kpi"><span>平均利用率</span><b>${util}%</b></div>
+      </div>
+      ${note}
+      <div class="report-fleet">${lines}</div>`;
   }
 
   function renderLiftReport() {
-    const m = liftReportModel();
-    const notes = liftReportNotes(m).map((text) => `<p class="report-note">${text}</p>`).join("");
-    const yest = m.rows.map((row) => `
-      <article class="report-card">
-        <div class="report-card-hd">
-          <strong>${row.u.name}</strong>
-        </div>
-        <div class="report-rows">
-          <div><span>循环次数</span><b>${row.day.trips}<i class="${row.trips.cls}">${row.trips.note}</i></b></div>
-          <div><span>累计载重</span><b>${row.day.load}<i class="${row.load.cls}">${row.load.note}</i></b></div>
-          <div><span>运送人数</span><b>${row.day.people}<i class="${row.people.cls}">${row.people.note}</i></b></div>
-          <div><span>时长利用率</span><b>${row.day.util}<i class="${row.util.cls}">${row.util.note}</i></b></div>
-          <div><span>运行时长</span><b>${row.day.time}</b></div>
-        </div>
-      </article>`).join("");
+    const kinds = [
+      { id: "day", name: "日报" },
+      { id: "week", name: "周报" },
+      { id: "month", name: "月报" }
+    ];
+    const pills = kinds.map((item) => `
+      <button type="button" class="${liftReportKind === item.id ? "on" : ""}" data-lift-span="${item.id}">${item.name}</button>`).join("");
+    let body;
+    if (liftReportKind === "week") {
+      const rows = liftSpanRows(liftHistoryRows);
+      body = renderLiftPeriod(
+        "2026-10-15 至 10-21",
+        Math.round(rows.reduce((sum, row) => sum + row.span.trips, 0)),
+        rows.reduce((sum, row) => sum + row.span.load, 0).toFixed(2),
+        Math.round(rows.reduce((sum, row) => sum + row.span.util, 0) / rows.length),
+        liftConclusions(liftJudgeRows(rows)),
+        liftFleetLines(rows.map((row) => ({
+          name: row.u.tab,
+          trips: Math.round(row.span.trips) + "次",
+          load: row.span.load.toFixed(2) + "t",
+          util: row.span.util + "%",
+          people: Math.round(row.span.people) + "人"
+        })))
+      );
+    } else if (liftReportKind === "month") {
+      const rows = liftSpanRows(liftMonthRows);
+      body = renderLiftPeriod(
+        "2026-10-01 至 10-21",
+        Math.round(rows.reduce((sum, row) => sum + row.span.trips, 0)),
+        rows.reduce((sum, row) => sum + row.span.load, 0).toFixed(2),
+        Math.round(rows.reduce((sum, row) => sum + row.span.util, 0) / rows.length),
+        liftConclusions(liftJudgeRows(rows)),
+        liftFleetLines(rows.map((row) => ({
+          name: row.u.tab,
+          trips: Math.round(row.span.trips) + "次",
+          load: row.span.load.toFixed(2) + "t",
+          util: row.span.util + "%",
+          people: Math.round(row.span.people) + "人"
+        })))
+      );
+    } else {
+      const m = liftReportModel();
+      body = renderLiftPeriod(
+        m.date,
+        m.trips,
+        m.load,
+        m.util,
+        liftConclusions(m.rows.map((row) => ({
+          name: row.u.tab,
+          trips: cranePlainNum(row.day.trips),
+          load: cranePlainNum(row.day.load),
+          people: cranePlainNum(row.day.people),
+          util: cranePlainNum(row.day.util)
+        }))),
+        liftFleetLines(m.rows.map((row) => ({
+          name: row.u.tab,
+          trips: row.day.trips,
+          load: row.day.load,
+          util: row.day.util,
+          people: row.day.people
+        })))
+      );
+    }
     return `
       <section class="uav-block">
-        <h4>昨日作业总结</h4>
-        <p class="report-date">${m.date} · 高新二路项目</p>
-        <div class="report-kpis">
-          <div class="report-kpi"><span>合计循环次数</span><b>${m.trips}次</b></div>
-          <div class="report-kpi"><span>合计载重</span><b>${m.load}t</b></div>
-          <div class="report-kpi"><span>平均利用率</span><b>${m.util}%</b></div>
-        </div>
-        ${notes}
-      </section>
-      <section class="uav-block">
-        <h4>昨日分台作业</h4>
-        ${yest}
-      </section>
-      <section class="uav-block report-actions">
+        <div class="uav-tabs crane-span">${pills}</div>
+        ${body}
         <button class="report-share" type="button" data-lift-share>导出分享</button>
       </section>`;
   }
 
   function liftReportPlain() {
-    const m = liftReportModel();
-    const lines = [
-      `电梯日报 ${m.date}`,
-      "高新二路项目",
-      "",
-      "昨日作业总结",
-      ...liftReportNotes(m),
-      `合计循环次数 ${m.trips}次，合计载重 ${m.load}t，合计运送 ${m.people}人，平均利用率 ${m.util}%。`,
-      "",
-      "昨日分台作业"
-    ];
-    m.rows.forEach((row) => {
-      lines.push(`${row.u.name}循环 ${row.day.trips}（${row.trips.note}），载重 ${row.day.load}（${row.load.note}），运送 ${row.day.people}（${row.people.note}），利用率 ${row.day.util}（${row.util.note}），运行 ${row.day.time}。`);
+    const kindName = liftReportKind === "week" ? "周报" : liftReportKind === "month" ? "月报" : "日报";
+    const root = document.createElement("div");
+    root.innerHTML = renderLiftReport();
+    const range = root.querySelector(".report-date").textContent;
+    const kpis = [...root.querySelectorAll(".report-kpi")].map((el) => el.innerText.replace(/\n/g, " ")).join("，");
+    const note = [...root.querySelectorAll(".report-points li")].map((el) => el.innerText.replace(/\s+/g, " ").trim());
+    const lines = [`电梯${kindName} ${range}`, "高新二路项目", kpis, "结论", ...note, ""];
+    [...root.querySelectorAll(".report-line:not(.is-hd)")].forEach((row) => {
+      lines.push(row.innerText.replace(/\n/g, " "));
     });
     return lines.join("\n");
   }
@@ -1411,11 +1730,13 @@
     liftTab = "11";
     liftChartTab = "11";
     liftChartRange = "7";
+    liftPageTab = "live";
+    liftReportKind = "day";
     subBack = null;
     subpage.classList.remove("is-alarm");
     subpage.classList.add("is-dark");
     paintSub("智能电梯", renderLift());
-    showDeviceReport("lift");
+    showDeviceReport("");
   }
 
   let craneTab = "2";
@@ -1505,10 +1826,8 @@
           <button class="crane-info-link" type="button" data-crane-info="${u.id}">设备信息</button>
         </div>
         <div class="crane-card-grid crane-card-pair">
-          ${craneCell("塔司", u.driver, "")}
-          ${craneCell("报警次数", u.alarms, u.alarms === "0次" ? "" : "is-alarm")}
-          ${craneCell("实时回转", u.slew, "")}
-          ${craneCell("实时高度", u.height, "")}
+          ${craneCell("今日吊次", u.trips, "")}
+          ${craneCell("今日吊重", u.weight, "")}
         </div>
         ${load}
       </article>`;
@@ -1717,6 +2036,8 @@
   }
 
   let craneChartTab = "2";
+  let cranePageTab = "live";
+  let craneReportKind = "day";
 
   function renderCraneAnalysis() {
     const u = craneDetails.find((c) => c.id === craneChartTab) || craneDetails[0];
@@ -1760,24 +2081,16 @@
   }
 
   function renderCrane() {
-    const u = craneDetails.find((c) => c.id === craneTab) || craneDetails[0];
-    const tabs = craneDetails.map((c) => `
-      <button type="button" class="${c.id === u.id ? "on" : ""}" data-crane-tab="${c.id}">${craneMark()}${c.tab}</button>`).join("");
-    const meters = craneWorkMeters(u, u);
-    return `
+    const tabs = `
+      <div class="uav-tabs">
+        <button type="button" class="${cranePageTab === "live" ? "on" : ""}" data-crane-view="live">设备实时状态</button>
+        <button type="button" class="${cranePageTab === "report" ? "on" : ""}" data-crane-view="report">作业报表</button>
+      </div>`;
+    if (cranePageTab === "report") return tabs + renderCraneReport();
+    return tabs + `
       <section class="uav-block">
-        <h4>设备实时概览</h4>
         <div class="crane-board">${craneDetails.map(renderCraneCard).join("")}</div>
-      </section>
-      <section class="uav-block">
-        <div class="uav-hd">
-          <h4>当日作业统计</h4>
-          <button class="crane-info-link" type="button" data-crane-history>历史数据</button>
-        </div>
-        <div class="crane-tabs">${tabs}</div>
-        ${meters}
-      </section>
-      ${renderCraneAnalysis()}`;
+      </section>`;
   }
 
   function openCraneInfo(id) {
@@ -1898,65 +2211,184 @@
     };
   }
 
-  function craneReportNotes(m) {
-    return [
-      `昨日 3 台塔机均有作业，合计吊次 ${m.trips} 次，合计吊重 ${m.weight}t，平均利用率 ${m.util}%。`,
-      `${m.topUtil.u.name}利用率最高，为 ${m.topUtil.day.util}，吊次和吊重${m.topUtil.trips.note.startsWith("↑") && m.topUtil.weight.note.startsWith("↑") ? "都高于" : "对比"}近7日均。${m.topWeight.u.name}吊重 ${m.topWeight.day.weight}，为三台最高。`,
-      `${m.lowUtil.u.name}利用率 ${m.lowUtil.day.util}，有效工作 ${m.lowUtil.day.work}，吊次 ${m.lowUtil.trips.note}、吊重 ${m.lowUtil.weight.note}。`
-    ];
+  function craneHistoryRows(u) {
+    return u.history.map((d) => ({
+      trips: cranePlainNum(d.trips),
+      weight: cranePlainNum(d.weight),
+      util: cranePlainNum(d.util),
+      rate: cranePlainNum(d.avgRate),
+      work: cranePlainNum(d.work)
+    }));
+  }
+
+  function craneMonthRows(u) {
+    return craneChartSeries(u, 22).filter((row) => row.date !== "10-22").map((row) => ({
+      trips: row.trips,
+      weight: row.weight,
+      util: row.util,
+      rate: row.rate,
+      work: 0
+    }));
+  }
+
+  function craneSpan(days) {
+    const n = days.length || 1;
+    return {
+      trips: days.reduce((sum, d) => sum + d.trips, 0),
+      weight: days.reduce((sum, d) => sum + d.weight, 0),
+      util: Math.round(days.reduce((sum, d) => sum + d.util, 0) / n),
+      rate: Math.round(days.reduce((sum, d) => sum + d.rate, 0) / n),
+      work: days.reduce((sum, d) => sum + d.work, 0)
+    };
+  }
+
+  function craneSpanRows(pick) {
+    return craneDetails.map((u) => ({ u, span: craneSpan(pick(u)) }));
+  }
+
+  function craneFleetLines(rows) {
+    const head = `<div class="report-line is-hd"><b>塔机</b><span>吊次</span><span>吊重</span><span>利用率</span><span>负荷</span></div>`;
+    const body = rows.map((row) => `
+      <div class="report-line">
+        <b>${row.name}${row.alarm ? `<em>报警 ${row.alarm}</em>` : ""}</b>
+        <span>${row.trips}</span>
+        <span>${row.weight}</span>
+        <span>${row.util}</span>
+        <span>${row.rate}</span>
+      </div>`).join("");
+    return head + body;
+  }
+
+  function craneJudgeRows(spanRows, withAlarm) {
+    return spanRows.map((row) => ({
+      name: row.u.name,
+      trips: Math.round(row.span.trips),
+      weight: row.span.weight,
+      util: row.span.util,
+      rate: row.span.rate,
+      alarm: withAlarm ? cranePlainNum(row.u.alarms) : 0,
+      violation: withAlarm ? cranePlainNum(row.u.violations) : 0
+    }));
+  }
+
+  function craneConclusions(rows) {
+    const low = reportExtreme(rows, "util", false);
+    const busy = reportExtreme(rows, "trips", true);
+    const heavy = reportExtreme(rows, "weight", true);
+    const loaded = reportExtreme(rows, "rate", true);
+    const trips = rows.reduce((sum, row) => sum + row.trips, 0);
+    const weight = rows.reduce((sum, row) => sum + row.weight, 0);
+    let focus = `${low.name} 利用率 ${low.util}%`;
+    if (low.alarm) focus += ` · 报警 ${low.alarm}次`;
+    if (low.violation) focus += ` · 违章 ${low.violation}次`;
+    const others = rows.filter((row) => row !== low && row.alarm);
+    if (others.length) focus += ` · ${others.map((row) => `${row.name}报警 ${row.alarm}次`).join("，")}`;
+    if (!low.alarm && !low.violation && !others.length) focus += `，${rows.length}台最低`;
+    return reportPoints([
+      { tag: "关注", warn: true, text: focus },
+      { tag: "主力", text: `${busy.name} 吊次 ${busy.trips}次，占 ${reportShare(busy.trips, trips)}%` },
+      { tag: "产出", text: `${heavy.name} 吊重 ${heavy.weight.toFixed(2)}t，占 ${reportShare(heavy.weight, weight)}%` },
+      { tag: "负荷", text: `${loaded.name} ${loaded.rate}%，${rows.length}台最高` }
+    ]);
+  }
+
+  function renderCranePeriod(range, trips, weight, util, note, lines) {
+    return `
+      <p class="report-date">${range}</p>
+      <div class="report-kpis">
+        <div class="report-kpi"><span>合计吊次</span><b>${trips}次</b></div>
+        <div class="report-kpi"><span>合计吊重</span><b>${weight}t</b></div>
+        <div class="report-kpi"><span>平均利用率</span><b>${util}%</b></div>
+      </div>
+      ${note}
+      <div class="report-fleet">${lines}</div>`;
   }
 
   function renderCraneReport() {
-    const m = craneReportModel();
-    const notes = craneReportNotes(m).map((text) => `<p class="report-note">${text}</p>`).join("");
-    const yest = m.rows.map((row) => `
-      <article class="report-card">
-        <div class="report-card-hd">
-          <strong>${row.u.name} · ${row.u.driver}</strong>
-          <em class="${row.u.alarms === "0次" ? "" : "is-alarm"}">报警 ${row.u.alarms}</em>
-        </div>
-        <div class="report-rows">
-          <div><span>累计吊次</span><b>${row.day.trips}<i class="${row.trips.cls}">${row.trips.note}</i></b></div>
-          <div><span>累计吊重</span><b>${row.day.weight}<i class="${row.weight.cls}">${row.weight.note}</i></b></div>
-          <div><span>时长利用率</span><b>${row.day.util}<i class="${row.util.cls}">${row.util.note}</i></b></div>
-          <div><span>吊重负荷率</span><b>${row.day.avgRate}<i class="${row.rate.cls}">${row.rate.note}</i></b></div>
-          <div><span>有效工作</span><b>${row.day.work}</b></div>
-        </div>
-      </article>`).join("");
+    const kinds = [
+      { id: "day", name: "日报" },
+      { id: "week", name: "周报" },
+      { id: "month", name: "月报" }
+    ];
+    const pills = kinds.map((item) => `
+      <button type="button" class="${craneReportKind === item.id ? "on" : ""}" data-crane-span="${item.id}">${item.name}</button>`).join("");
+    let body;
+    if (craneReportKind === "week") {
+      const rows = craneSpanRows(craneHistoryRows);
+      body = renderCranePeriod(
+        "2026-10-15 至 10-21",
+        Math.round(rows.reduce((sum, row) => sum + row.span.trips, 0)),
+        rows.reduce((sum, row) => sum + row.span.weight, 0).toFixed(2),
+        Math.round(rows.reduce((sum, row) => sum + row.span.util, 0) / rows.length),
+        craneConclusions(craneJudgeRows(rows, false)),
+        craneFleetLines(rows.map((row) => ({
+          name: row.u.name,
+          trips: Math.round(row.span.trips) + "次",
+          weight: row.span.weight.toFixed(2) + "t",
+          util: row.span.util + "%",
+          rate: row.span.rate + "%"
+        })))
+      );
+    } else if (craneReportKind === "month") {
+      const rows = craneSpanRows(craneMonthRows);
+      body = renderCranePeriod(
+        "2026-10-01 至 10-21",
+        Math.round(rows.reduce((sum, row) => sum + row.span.trips, 0)),
+        rows.reduce((sum, row) => sum + row.span.weight, 0).toFixed(2),
+        Math.round(rows.reduce((sum, row) => sum + row.span.util, 0) / rows.length),
+        craneConclusions(craneJudgeRows(rows, false)),
+        craneFleetLines(rows.map((row) => ({
+          name: row.u.name,
+          trips: Math.round(row.span.trips) + "次",
+          weight: row.span.weight.toFixed(2) + "t",
+          util: row.span.util + "%",
+          rate: row.span.rate + "%"
+        })))
+      );
+    } else {
+      const m = craneReportModel();
+      body = renderCranePeriod(
+        m.date,
+        m.trips,
+        m.weight,
+        m.util,
+        craneConclusions(m.rows.map((row) => ({
+          name: row.u.name,
+          trips: cranePlainNum(row.day.trips),
+          weight: cranePlainNum(row.day.weight),
+          util: cranePlainNum(row.day.util),
+          rate: cranePlainNum(row.day.avgRate),
+          alarm: cranePlainNum(row.u.alarms),
+          violation: cranePlainNum(row.u.violations)
+        }))),
+        craneFleetLines(m.rows.map((row) => ({
+          name: row.u.name,
+          trips: row.day.trips,
+          weight: row.day.weight,
+          util: row.day.util,
+          rate: row.day.avgRate,
+          alarm: cranePlainNum(row.u.alarms) > 0 ? row.u.alarms : ""
+        })))
+      );
+    }
     return `
       <section class="uav-block">
-        <h4>昨日作业总结</h4>
-        <p class="report-date">${m.date} · 高新二路项目</p>
-        <div class="report-kpis">
-          <div class="report-kpi"><span>合计吊次</span><b>${m.trips}次</b></div>
-          <div class="report-kpi"><span>合计吊重</span><b>${m.weight}t</b></div>
-          <div class="report-kpi"><span>平均利用率</span><b>${m.util}%</b></div>
-        </div>
-        ${notes}
-      </section>
-      <section class="uav-block">
-        <h4>昨日分台作业</h4>
-        ${yest}
-      </section>
-      <section class="uav-block report-actions">
+        <div class="uav-tabs crane-span">${pills}</div>
+        ${body}
         <button class="report-share" type="button" data-crane-share>导出分享</button>
       </section>`;
   }
 
   function craneReportPlain() {
-    const m = craneReportModel();
-    const lines = [
-      `塔机日报 ${m.date}`,
-      "高新二路项目",
-      "",
-      "昨日作业总结",
-      ...craneReportNotes(m),
-      `合计吊次 ${m.trips}次，合计吊重 ${m.weight}t，平均利用率 ${m.util}%。`,
-      "",
-      "昨日分台作业"
-    ];
-    m.rows.forEach((row) => {
-      lines.push(`${row.u.name}（${row.u.driver}）吊次 ${row.day.trips}（${row.trips.note}），吊重 ${row.day.weight}（${row.weight.note}），利用率 ${row.day.util}（${row.util.note}），吊重负荷率 ${row.day.avgRate}（${row.rate.note}），有效工作 ${row.day.work}，报警 ${row.u.alarms}。`);
+    const kindName = craneReportKind === "week" ? "周报" : craneReportKind === "month" ? "月报" : "日报";
+    const root = document.createElement("div");
+    root.innerHTML = renderCraneReport();
+    const range = root.querySelector(".report-date").textContent;
+    const kpis = [...root.querySelectorAll(".report-kpi")].map((el) => el.innerText.replace(/\n/g, " ")).join("，");
+    const note = [...root.querySelectorAll(".report-points li")].map((el) => el.innerText.replace(/\s+/g, " ").trim());
+    const lines = [`塔机${kindName} ${range}`, "高新二路项目", kpis, "结论", ...note, ""];
+    [...root.querySelectorAll(".report-line:not(.is-hd)")].forEach((row) => {
+      lines.push(row.innerText.replace(/\n/g, " "));
     });
     return lines.join("\n");
   }
@@ -1991,12 +2423,12 @@
 
   function shareCraneReport() {
     const m = craneReportModel();
-    shareReportFile(`塔机日报 ${m.date}`, craneReportPlain(), `塔机日报-${m.date}.txt`);
+    shareReportFile(`塔机报表 ${m.date}`, craneReportPlain(), `塔机报表-${m.date}.txt`);
   }
 
   function shareLiftReport() {
     const m = liftReportModel();
-    shareReportFile(`电梯日报 ${m.date}`, liftReportPlain(), `电梯日报-${m.date}.txt`);
+    shareReportFile(`电梯报表 ${m.date}`, liftReportPlain(), `电梯报表-${m.date}.txt`);
   }
 
   let deviceReport = "";
@@ -2019,11 +2451,13 @@
     closePeoplePop();
     craneTab = "2";
     craneChartTab = "2";
+    cranePageTab = "live";
+    craneReportKind = "day";
     subBack = null;
     subpage.classList.remove("is-alarm");
     subpage.classList.add("is-dark");
     paintSub("智能塔机", renderCrane());
-    showDeviceReport("crane");
+    showDeviceReport("");
   }
 
   function openUavPage() {
@@ -2035,6 +2469,108 @@
     subpage.classList.remove("is-alarm");
     subpage.classList.add("is-dark");
     paintSub("无人机", renderUav());
+  }
+
+  const climbUpdated = "2026-10-06 14:29:55";
+  const climbSensors = [
+    [1, "0.16mm", "3.11mm", "1.03吨", "14:02:37"],
+    [2, "1.60mm", "3.42mm", "1.03吨", "14:03:17"],
+    [3, "0.54mm", "4.16mm", "1.12吨", "14:04:02"],
+    [4, "0.82mm", "3.22mm", "1.15吨", "14:05:52"],
+    [5, "0.05mm", "3.34mm", "1.22吨", "14:06:33"],
+    [6, "0.31mm", "4.14mm", "1.15吨", "14:07:17"],
+    [7, "1.47mm", "4.20mm", "1.21吨", "14:07:52"],
+    [8, "0.06mm", "4.74mm", "0.86吨", "14:08:18"],
+    [9, "0.20mm", "4.99mm", "1.03吨", "14:08:48"],
+    [10, "0.91mm", "4.72mm", "1.04吨", "14:27:40"],
+    [11, "0.12mm", "4.51mm", "1.03吨", "14:10:03"],
+    [12, "1.16mm", "4.80mm", "1.05吨", "14:10:43"],
+    [13, "0.37mm", "5.27mm", "1.24吨", "14:11:08"],
+    [14, "1.47mm", "3.96mm", "1.29吨", "14:11:43"],
+    [15, "0.28mm", "4.79mm", "1.01吨", "14:12:23"],
+    [16, "0.42mm", "3.68mm", "1.08吨", "14:12:58"],
+    [17, "1.05mm", "4.33mm", "0.97吨", "14:13:28"],
+    [18, "0.18mm", "3.85mm", "1.18吨", "14:13:53"],
+    [19, "0.73mm", "5.02mm", "1.11吨", "14:14:18"],
+    [20, "1.28mm", "4.41mm", "0.92吨", "14:14:43"],
+    [21, "0.09mm", "3.57mm", "1.26吨", "14:15:13"],
+    [22, "1.84mm", "3.91mm", "0.84吨", "14:29:20"],
+    [23, "0.65mm", "5.77mm", "1.24吨", "14:15:48"],
+    [24, "1.57mm", "4.80mm", "1.34吨", "14:16:28"],
+    [25, "0.23mm", "4.86mm", "1.04吨", "14:17:03"],
+    [26, "0.76mm", "4.14mm", "1.33吨", "14:17:43"],
+    [27, "0.10mm", "3.61mm", "1.02吨", "14:18:18"],
+    [28, "0.00mm", "4.27mm", "0.93吨", "14:19:03"],
+    [29, "1.16mm", "2.87mm", "1.35吨", "14:19:48"],
+    [30, "179.70mm", "2.86mm", "0.99吨", "14:20:38", "lr"],
+    [31, "0.13mm", "4.65mm", "1.20吨", "14:23:13"],
+    [32, "0.33mm", "4.76mm", "1.16吨", "14:24:28"],
+    [33, "0.17mm", "2.95mm", "1.15吨", "14:26:08"],
+    [34, "0.74mm", "3.30mm", "1.24吨", "14:25:53"],
+    [35, "0.19mm", "3.93mm", "0.99吨", "14:01:37"],
+    [36, "0.28mm", "3.60mm", "1.20吨", "14:02:02"]
+  ];
+
+  function climbUnit(text) {
+    return String(text).replace(/(\d+(?:\.\d+)?)(mm|吨)/g, '$1<i class="eq-stat-unit"> $2</i>');
+  }
+
+  let climbPageTab = "lr";
+
+  function climbBoard(index, badKey) {
+    const known = climbSensors.length;
+    const badRows = badKey ? climbSensors.filter((row) => row[5] === badKey) : [];
+    const normal = known - badRows.length;
+    const line = (row) => {
+      const bad = badKey && row[5] === badKey;
+      return `<div class="climb-line${bad ? " is-bad" : ""}"><b>${row[0]}#</b><span>${climbUnit(row[index])}</span><time>${row[4]}</time></div>`;
+    };
+    const lines = climbSensors.map(line);
+    const issue = badRows.map((row) => `<p class="climb-issue">${row[0]}#机位 ${climbUnit(row[index])}，超过 ${climbUnit("60mm")}</p>`).join("");
+    return `
+      <section class="climb-board">
+        <header>
+          <b class="${badRows.length ? "is-bad" : "is-ok"}"><em>${normal}</em><i>/${known}</i></b>
+        </header>
+        ${issue}
+        <div class="climb-lines">
+          ${lines.join("")}
+        </div>
+      </section>`;
+  }
+
+  function renderClimb() {
+    const tabs = [
+      { id: "lr", name: "左右倾斜" },
+      { id: "fb", name: "前后倾斜" },
+      { id: "load", name: "载荷" }
+    ];
+    const buttons = tabs.map((item) => `
+      <button type="button" class="${climbPageTab === item.id ? "on" : ""}" data-climb-view="${item.id}">${item.name}</button>`).join("");
+    const board = climbPageTab === "fb"
+      ? climbBoard(2, "")
+      : climbPageTab === "load"
+        ? climbBoard(3, "")
+        : climbBoard(1, "lr");
+    return `
+      <div class="climb-page">
+        <div class="climb-sum">
+          <div><span>传感器数量</span><b>38</b></div>
+          <div><span>更新时间</span><b>${climbUpdated}</b></div>
+        </div>
+        <div class="uav-tabs climb-view">${buttons}</div>
+        ${board}
+      </div>`;
+  }
+
+  function openClimbPage() {
+    closePeoplePop();
+    climbPageTab = "lr";
+    subBack = null;
+    subpage.classList.remove("is-alarm");
+    subpage.classList.add("is-dark");
+    paintSub("智能爬架", renderClimb());
+    showDeviceReport("");
   }
 
   function renderHomePanel(mod) {
@@ -2095,6 +2631,9 @@
   }
   let inspHistDate = addDays(protoToday(), -1);
   let inspCalMonth = startOfDay(new Date(inspHistDate.getFullYear(), inspHistDate.getMonth(), 1));
+  let alarmHistTab = "hist";
+  let alarmHistDate = addDays(protoToday(), -1);
+  let alarmHistCalMonth = startOfDay(new Date(alarmHistDate.getFullYear(), alarmHistDate.getMonth(), 1));
 
   function dateKey(d) {
     const x = startOfDay(d);
@@ -2303,26 +2842,89 @@
     return `<button class="alarm-hist-row" type="button" data-hist-day="${dateKey(d)}">${body}</button>`;
   }
 
+  function alarmHistCalMaxDay() {
+    return addDays(protoToday(), -1);
+  }
+
+  function alarmHistCalEls() {
+    return {
+      cal: document.getElementById("alarmHistCal"),
+      title: document.getElementById("alarmHistCalTitle"),
+      grid: document.getElementById("alarmHistCalGrid"),
+      prev: document.getElementById("alarmHistCalPrev"),
+      next: document.getElementById("alarmHistCalNext")
+    };
+  }
+
+  function paintAlarmHistCal() {
+    const els = alarmHistCalEls();
+    if (!els.cal) return;
+    fillMonthCal(alarmHistCalMonth, alarmHistDate, els.title, els.grid, els.prev, els.next, {
+      maxDay: alarmHistCalMaxDay()
+    });
+  }
+
+  function hideAlarmHistCal() {
+    const cal = document.getElementById("alarmHistCal");
+    if (cal) cal.classList.add("hide");
+  }
+
+  function showAlarmHistCal() {
+    alarmHistCalMonth = startOfDay(new Date(alarmHistDate.getFullYear(), alarmHistDate.getMonth(), 1));
+    paintAlarmHistCal();
+    const cal = document.getElementById("alarmHistCal");
+    if (cal) cal.classList.remove("hide");
+    const hist = subBody.querySelector(".alarm-hist-page .insp-hist");
+    if (hist) hist.scrollIntoView({ block: "start" });
+  }
+
   function renderAlarmHist() {
-    const today = protoToday();
-    const todayList = alarmDayRecords(today);
-    const rows = [];
-    let sum = 0;
-    for (let off = 1; off <= 30; off++) {
-      const d = addDays(today, -off);
-      sum += alarmDayCount(d);
-      rows.push(alarmHistRow(d, off));
-    }
-    const wk = "日一二三四五六"[today.getDay()];
+    const today = latestAlarms.slice();
+    const hist = alarmDayRecords(alarmHistDate);
+    const onHist = alarmHistTab === "hist";
+    const yest = sameDay(alarmHistDate, alarmHistCalMaxDay());
     return `
-      <div class="alarm-hist-page">
-        <div class="alarm-hist-sum">
-          <span>今天<em>${today.getMonth() + 1}月${today.getDate()}日 · 周${wk}</em></span>
-          <b>${todayList.length}<i>条</i></b>
+      <div class="insp-page alarm-hist-page">
+        <div class="insp-tabs">
+          <button class="insp-tab${onHist ? "" : " on"}" type="button" data-alarm-hist-tab="today">今日预警</button>
+          <button class="insp-tab${onHist ? " on" : ""}" type="button" data-alarm-hist-tab="hist">历史预警</button>
         </div>
-        <div class="insp-list">${todayList.map(histAlarmItem).join("")}</div>
-        <div class="alarm-hist-day-hd">更早日期<span>近30日 ${sum} 次</span></div>
-        <div class="alarm-hist-list">${rows.join("")}</div>
+        <div class="insp-pane${onHist ? " hide" : ""}">
+          <div class="home-stats alarm-row">
+            <div class="home-stat alert"><b>${today.length}</b><span>今日预警数</span></div>
+            <div class="home-chart-card alarm-mini">
+              <span class="alarm-mini-lab">近7日预警趋势</span>
+              ${alarmTrendSvg("alarmHistFill")}
+            </div>
+          </div>
+          <div class="insp-list">${today.map(histAlarmItem).join("")}</div>
+        </div>
+        <div class="insp-pane insp-hist${onHist ? "" : " hide"}">
+          <div class="insp-hist-hd">
+            <div>
+              <strong>${yest ? "昨天" : formatCamDate(alarmHistDate)}</strong>
+              <span>${hist.length}条</span>
+            </div>
+            <button class="cam-day cam-day-pick on" type="button" data-alarm-hist-cal="1">
+              ${yest ? "昨天" : formatMD(alarmHistDate)}
+              ${calIco}
+            </button>
+          </div>
+          <div class="cam-cal hide" id="alarmHistCal">
+            <div class="cam-cal-hd">
+              <button class="cam-cal-nav" id="alarmHistCalPrev" type="button" aria-label="上一月">‹</button>
+              <strong id="alarmHistCalTitle">2026年10月</strong>
+              <button class="cam-cal-nav" id="alarmHistCalNext" type="button" aria-label="下一月">›</button>
+            </div>
+            <div class="cam-cal-week">
+              <span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span>
+            </div>
+            <div class="cam-cal-grid" id="alarmHistCalGrid"></div>
+          </div>
+          ${hist.length
+            ? `<div class="insp-list">${hist.map(histAlarmItem).join("")}</div>`
+            : `<div class="insp-empty">该日暂无预警记录</div>`}
+        </div>
       </div>`;
   }
 
@@ -2342,11 +2944,12 @@
       </div>`;
   }
 
-  function openAlarmHist() {
+  function openAlarmHist(tab) {
+    if (tab === "today" || tab === "hist") alarmHistTab = tab;
     histDay = null;
     subBack = null;
     subpage.classList.remove("is-alarm", "is-dark");
-    paintSub("历史预警", renderAlarmHist());
+    paintSub("报警预警", renderAlarmHist());
   }
 
   function openAlarmHistDay(d) {
@@ -2382,6 +2985,11 @@
     const inspCal = document.getElementById("inspCal");
     if (force !== true && inspCal && !inspCal.classList.contains("hide")) {
       hideInspCal();
+      return;
+    }
+    const alarmCal = document.getElementById("alarmHistCal");
+    if (force !== true && alarmCal && !alarmCal.classList.contains("hide")) {
+      hideAlarmHistCal();
       return;
     }
     if (force !== true && subBack) {
@@ -2438,6 +3046,12 @@
   });
 
   subBody.addEventListener("click", (e) => {
+    const climbViewBtn = e.target.closest("[data-climb-view]");
+    if (climbViewBtn) {
+      climbPageTab = climbViewBtn.dataset.climbView;
+      paintSub("智能爬架", renderClimb());
+      return;
+    }
     const uavTodayBtn = e.target.closest("[data-uav-today]");
     if (uavTodayBtn) {
       openUavToday();
@@ -2462,6 +3076,18 @@
       paintSub("无人机", renderUav());
       return;
     }
+    const craneSpanBtn = e.target.closest("[data-crane-span]");
+    if (craneSpanBtn) {
+      craneReportKind = craneSpanBtn.dataset.craneSpan;
+      paintSub("智能塔机", renderCrane());
+      return;
+    }
+    const craneViewBtn = e.target.closest("[data-crane-view]");
+    if (craneViewBtn) {
+      cranePageTab = craneViewBtn.dataset.craneView;
+      paintSub("智能塔机", renderCrane());
+      return;
+    }
     const craneInfoBtn = e.target.closest("[data-crane-info]");
     if (craneInfoBtn) {
       openCraneInfo(craneInfoBtn.dataset.craneInfo);
@@ -2470,6 +3096,18 @@
     const craneShare = e.target.closest("[data-crane-share]");
     if (craneShare) {
       shareCraneReport();
+      return;
+    }
+    const liftSpanBtn = e.target.closest("[data-lift-span]");
+    if (liftSpanBtn) {
+      liftReportKind = liftSpanBtn.dataset.liftSpan;
+      paintSub("智能电梯", renderLift());
+      return;
+    }
+    const liftViewBtn = e.target.closest("[data-lift-view]");
+    if (liftViewBtn) {
+      liftPageTab = liftViewBtn.dataset.liftView;
+      paintSub("智能电梯", renderLift());
       return;
     }
     const liftShare = e.target.closest("[data-lift-share]");
@@ -2580,6 +3218,42 @@
       else hideInspCal();
       return;
     }
+    const alarmPrev = e.target.closest("#alarmHistCalPrev");
+    if (alarmPrev) {
+      if (alarmPrev.disabled) return;
+      alarmHistCalMonth.setMonth(alarmHistCalMonth.getMonth() - 1);
+      paintAlarmHistCal();
+      return;
+    }
+    const alarmNext = e.target.closest("#alarmHistCalNext");
+    if (alarmNext) {
+      if (alarmNext.disabled) return;
+      alarmHistCalMonth.setMonth(alarmHistCalMonth.getMonth() + 1);
+      paintAlarmHistCal();
+      return;
+    }
+    const alarmCalDay = e.target.closest("#alarmHistCalGrid [data-cal]");
+    if (alarmCalDay) {
+      if (alarmCalDay.disabled) return;
+      const [y, m, d] = alarmCalDay.dataset.cal.split("-").map(Number);
+      alarmHistDate = startOfDay(new Date(y, m - 1, d));
+      openAlarmHist("hist");
+      return;
+    }
+    const alarmTab = e.target.closest("[data-alarm-hist-tab]");
+    if (alarmTab) {
+      hideAlarmHistCal();
+      openAlarmHist(alarmTab.dataset.alarmHistTab);
+      return;
+    }
+    const alarmPick = e.target.closest("[data-alarm-hist-cal]");
+    if (alarmPick) {
+      const cal = document.getElementById("alarmHistCal");
+      if (!cal) return;
+      if (cal.classList.contains("hide")) showAlarmHistCal();
+      else hideAlarmHistCal();
+      return;
+    }
     const dayItem = e.target.closest("[data-day-alarm]");
     if (dayItem) {
       const backTo = histDay ? () => openAlarmHistDay(histDay) : openAlarmHist;
@@ -2605,9 +3279,9 @@
   function sheetStops() {
     const h = pageHome.clientHeight;
     const pageRect = pageHome.getBoundingClientRect();
-    const prog = pageHome.querySelector(".home-progress");
-    const full = prog
-      ? Math.round(prog.getBoundingClientRect().bottom - pageRect.top + 10)
+    const anchor = pageHome.querySelector(".home-project-row");
+    const full = anchor
+      ? Math.round(anchor.getBoundingClientRect().bottom - pageRect.top + 12)
       : 118;
     const mid = Math.round(h * 0.42);
     return { full, mid };
@@ -2767,6 +3441,11 @@
       openCranePage();
       return;
     }
+    const climbBtn = e.target.closest("[data-climb]");
+    if (climbBtn) {
+      openClimbPage();
+      return;
+    }
     const eqBtn = e.target.closest("[data-eq]");
     if (eqBtn) {
       const node = siteEquip.find((d) => d.id === eqBtn.dataset.eq);
@@ -2792,7 +3471,7 @@
     }
     const alarm = e.target.closest("[data-alarm]");
     if (alarm) {
-      openInspectList("today");
+      openAlarmDetail(alarm.dataset.alarm);
       return;
     }
     const cfg = e.target.closest(".cam-cfg");
@@ -3364,11 +4043,11 @@
     if (!btn) return;
     const shot = airList[Number(btn.dataset.air)];
     if (!shot) return;
-    airPopImg.src = shot.img;
-    airPopImg.className = shot.pos;
-    airPopMeta.textContent = "定点航拍  " + formatCamDate(airDate) + "  " + shot.time;
-    airPop.hidden = false;
-    airPop.classList.add("open");
+    const label = formatCamDate(airDate);
+    openPhotoStage({
+      name: "定点航拍 " + label + " " + shot.time,
+      img: shot.img
+    });
   });
 
   document.getElementById("btnAirClose").addEventListener("click", () => {
@@ -3380,14 +4059,7 @@
     pct: Math.round((b.done / b.total) * 100),
     late: b.plan === "滞后"
   }));
-  const landEqIco = {
-    crane: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 20h15"/><path d="M7 20V7.5h3.2V20"/><path d="M8.6 7.5H20l-3.2 6.2"/><path d="M16.8 13.7V20"/></svg>`,
-    lift: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="3.5" width="10" height="17" rx="1.4"/><path d="M12 8.2v2.4M12 8.2l-1.2-1.2M12 8.2l1.2-1.2M12 15.6v-2.4M12 15.6l-1.2 1.2M12 15.6l1.2 1.2"/></svg>`,
-    scale: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 17.5h15"/><path d="M7 17.5V9.2h10v8.3"/><path d="M9.2 9.2 12 5.8l2.8 3.4"/></svg>`,
-    drone: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="6.2" cy="6.2" r="2"/><circle cx="17.8" cy="6.2" r="2"/><circle cx="6.2" cy="17.8" r="2"/><circle cx="17.8" cy="17.8" r="2"/><path d="M8.2 6.2h7.6M8.2 17.8h7.6M6.2 8.2v7.6M17.8 8.2v7.6"/><rect x="10" y="10" width="4" height="4" rx="0.8"/></svg>`,
-    climb: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 20V5h10v15"/><path d="M7 9h10M7 13h10M7 17h10"/></svg>`,
-    robot: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="8" width="12" height="10" rx="2"/><circle cx="9.5" cy="12.2" r="1"/><circle cx="14.5" cy="12.2" r="1"/><path d="M12 8V5.5M9 18.2v1.8M15 18.2v1.8"/></svg>`
-  };
+  const landEqIco = equipIco;
   const landDevices = siteEquip.map((d) => {
     const c = equipCount(d);
     return { name: d.name, on: c.on, total: c.total, ico: d.ico };
@@ -3409,7 +4081,7 @@
     const dots = landDevices.map((_, n) => `<i class="${n === landEqIdx ? "on" : ""}"></i>`).join("");
     box.innerHTML = `
       <div class="land-eq-top">
-        <span class="land-eq-ico">${landEqIco[d.ico]}</span>
+        <span class="land-eq-ico">${landEqIco[d.ico] || landEqIco.robot || ""}</span>
         <strong>${d.name}</strong>
         <em class="land-eq-num ${st}"><i>${d.on}</i>/${d.total}</em>
       </div>
@@ -3531,6 +4203,7 @@
     setMapFlat(!mapLand.classList.contains("is-flat"));
   });
   document.getElementById("landAlarmPins").addEventListener("click", onAlarmPin);
+  document.getElementById("homeAlarmPins").addEventListener("click", onAlarmPin);
   renderAlarmPins();
 
   function tick() {

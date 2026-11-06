@@ -1,10 +1,10 @@
-const VERSION = "20261029q";
+const VERSION = "20261108a";
 const CACHE = "site-map-" + VERSION;
 
 const PRECACHE = [
   "./index.html",
-  "./css/app.css?v=20261029za94",
-  "./js/app.js?v=20261029za109",
+  "./css/app.css?v=20261029za136",
+  "./js/app.js?v=20261029za154",
   "./img/site-map.jpg?v=20261029d",
   "./img/site-flat.jpg?v=20261029d",
   "./img/alarm-trash.jpg?v=20261029d",
@@ -22,7 +22,17 @@ const PRECACHE = [
   "./img/patrol-layout.jpg?v=20261029d",
   "./img/patrol-layout-2.jpg?v=20261029d",
   "./img/patrol-road.jpg?v=20261029d",
-  "./img/patrol-power.jpg?v=20261029d"
+  "./img/patrol-power.jpg?v=20261029d",
+  "./img/eq-crane.jpg?v=20261106eq3",
+  "./img/eq-lift.jpg?v=20261106eq3",
+  "./img/eq-drone.jpg?v=20261106eq3",
+  "./img/eq-car.jpg?v=20261106eq",
+  "./img/eq-digger.jpg?v=20261106eq",
+  "./img/eq-panel.jpg?v=20261106eq",
+  "./img/eq-level.jpg?v=20261106eq",
+  "./img/eq-scan.jpg?v=20261106eq",
+  "./img/eq-scale.jpg?v=20261106eq",
+  "./img/eq-climb.jpg?v=20261106eq4"
 ];
 
 function isImage(url) {
