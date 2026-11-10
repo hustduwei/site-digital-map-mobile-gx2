@@ -302,7 +302,7 @@ button, input, textarea { font-family: inherit; color: inherit; }
   top: 0;
   height: calc(42% + 20px);
   background-color: rgb(5, 10, 21);
-  background-image: url("../img/site-map.jpg?v=20261029d");
+  background-image: url("../img/site-map.jpg?v=20261110map");
   background-repeat: no-repeat;
   background-size: cover;
   background-position: center center;
@@ -670,7 +670,7 @@ button, input, textarea { font-family: inherit; color: inherit; }
 .map-land.is-flat .map-land-fit {
   width: auto;
   height: 100%;
-  aspect-ratio: 1024 / 747;
+  aspect-ratio: 1024 / 760;
   max-width: 100%;
 }
 

@@ -4186,7 +4186,7 @@
     const btn = document.getElementById("btnMapFlat");
     mapLand.classList.toggle("is-flat", on);
     if (img) {
-      img.src = on ? "img/site-flat.jpg?v=20261029d" : "img/site-map.jpg?v=20261029d";
+      img.src = on ? "img/site-flat.jpg?v=20261110flat" : "img/site-map.jpg?v=20261110map";
       img.alt = on ? "工地二维地图" : "工地数字地图";
     }
     if (btn) {
