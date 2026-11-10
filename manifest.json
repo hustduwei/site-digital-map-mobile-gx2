@@ -1,6 +1,6 @@
 {
-  "name": "工地数字地图",
-  "short_name": "数字地图",
+  "name": "向阳村项目智能建造管理平台",
+  "short_name": "向阳村智建",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

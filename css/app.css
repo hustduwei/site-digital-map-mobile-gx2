@@ -6105,12 +6105,8 @@ button.alarm-hist-row {
 .people-pop .uav-routes { margin-top: 8px; }
 
 .app.home-mode:has(.subpage.is-dark.open) .tabbar {
-  background: #0B1626;
-  border-top-color: rgba(255, 255, 255, 0.06);
+  display: none;
 }
-
-.app.home-mode:has(.subpage.is-dark.open) .tab { color: #5C6E86; }
-.app.home-mode:has(.subpage.is-dark.open) .tab.active { color: #4C9FFF; }
 
 .empty-note {
   font-size: 14px;

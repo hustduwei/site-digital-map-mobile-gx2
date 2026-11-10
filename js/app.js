@@ -874,7 +874,22 @@
       jobs: { done: 1, total: 3 },
       units: [{ name: "无人机", on: false, rows: [] }] },
     { id: "climb", name: "智能爬架", value: "异常", metric: "左右倾斜", ico: "climb", page: "climb",
-      units: [{ name: "智能爬架", on: true, rows: [] }] }
+      units: [{ name: "智能爬架", on: true, rows: [] }] },
+    { id: "grind", name: "地坪研磨机器人", ico: "grind",
+      stats: [{ value: "5次", metric: "今日作业次数" }],
+      units: [{ name: "地坪研磨机器人", on: true, rows: [] }] },
+    { id: "plaster", name: "抹灰机器人", ico: "plaster",
+      stats: [{ value: "4次", metric: "今日作业次数" }],
+      units: [{ name: "抹灰机器人", on: true, rows: [] }] },
+    { id: "survey", name: "测量机器人", ico: "survey",
+      stats: [{ value: "7次", metric: "今日作业次数" }],
+      units: [{ name: "测量机器人", on: true, rows: [] }] },
+    { id: "spray", name: "喷涂机器人", ico: "spray",
+      stats: [{ value: "9次", metric: "今日作业次数" }],
+      units: [{ name: "喷涂机器人", on: true, rows: [] }] },
+    { id: "screed", name: "混凝土整平机器人", ico: "screed",
+      stats: [{ value: "3次", metric: "今日作业次数" }],
+      units: [{ name: "混凝土整平机器人", on: true, rows: [] }] }
   ];
 
   function equipCount(d) {
@@ -910,7 +925,12 @@
     crane: "img/eq-crane.jpg?v=20261106eq3",
     lift: "img/eq-lift.jpg?v=20261106eq3",
     drone: "img/eq-drone.jpg?v=20261106eq3",
-    climb: "img/eq-climb.jpg?v=20261106eq4"
+    climb: "img/eq-climb.jpg?v=20261110eq6",
+    grind: "img/eq-grind.jpg?v=20261110eq5",
+    plaster: "img/eq-plaster.jpg?v=20261110eq5",
+    survey: "img/eq-survey.jpg?v=20261110eq5",
+    spray: "img/eq-spray.jpg?v=20261110eq5",
+    screed: "img/eq-screed.jpg?v=20261110eq5"
   };
 
   function equipMark(key) {
@@ -1014,8 +1034,10 @@
             ${alert}
           </button>`;
         }
-        return `
-        <button class="eq-card${page ? " drill" : ""}" type="button"${attrs}>
+        const label = `${d.name}，设备状态${c.on}/${c.total}，${stats.map((s) => s.value + s.metric).join("，")}`;
+        const status = `<span class="eq-val eq-online${c.on ? "" : " is-off"}"><b><em>${c.on}<i>/${c.total}</i></em></b><span>设备状态</span></span>`;
+        return page ? `
+        <button class="eq-card drill" type="button"${attrs}>
           <span class="eq-ico" aria-hidden="true">${equipMark(d.ico)}</span>
           <span class="eq-main">
             <span class="eq-hd">
@@ -1027,8 +1049,18 @@
               ${statHtml}
             </span>
           </span>
-          ${page ? `<span class="eq-more" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M10 6l6 6-6 6"/></svg></span>` : ""}
-        </button>`;
+          <span class="eq-more" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M10 6l6 6-6 6"/></svg></span>
+        </button>` : `
+        <div class="eq-card" aria-label="${label}">
+          <span class="eq-ico" aria-hidden="true">${equipMark(d.ico)}</span>
+          <span class="eq-main">
+            <span class="eq-hd">
+              <strong>${d.name}</strong>
+              <i class="eq-dot ${c.st}"></i>
+            </span>
+            <span class="eq-vals">${status}${statHtml}</span>
+          </span>
+        </div>`;
       }).join("")}</div>`;
   }
 
@@ -4060,7 +4092,7 @@
     late: b.plan === "滞后"
   }));
   const landEqIco = equipIco;
-  const landDevices = siteEquip.map((d) => {
+  const landDevices = siteEquip.filter((d) => d.page).map((d) => {
     const c = equipCount(d);
     return { name: d.name, on: c.on, total: c.total, ico: d.ico };
   });

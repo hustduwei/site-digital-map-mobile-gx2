@@ -1,10 +1,10 @@
-const VERSION = "20261108a";
+const VERSION = "20261110d";
 const CACHE = "site-map-" + VERSION;
 
 const PRECACHE = [
   "./index.html",
-  "./css/app.css?v=20261029za136",
-  "./js/app.js?v=20261029za154",
+  "./css/app.css?v=20261029za137",
+  "./js/app.js?v=20261029za157",
   "./img/site-map.jpg?v=20261029d",
   "./img/site-flat.jpg?v=20261029d",
   "./img/alarm-trash.jpg?v=20261029d",
@@ -32,7 +32,12 @@ const PRECACHE = [
   "./img/eq-level.jpg?v=20261106eq",
   "./img/eq-scan.jpg?v=20261106eq",
   "./img/eq-scale.jpg?v=20261106eq",
-  "./img/eq-climb.jpg?v=20261106eq4"
+  "./img/eq-climb.jpg?v=20261110eq6",
+  "./img/eq-grind.jpg?v=20261110eq5",
+  "./img/eq-plaster.jpg?v=20261110eq5",
+  "./img/eq-survey.jpg?v=20261110eq5",
+  "./img/eq-spray.jpg?v=20261110eq5",
+  "./img/eq-screed.jpg?v=20261110eq5"
 ];
 
 function isImage(url) {
