@@ -610,39 +610,39 @@
     { name: "幼儿园", done: 3, total: 3, plan: "正常", rate: 94 }
   ];
   const patrolCats = [
-    { id: "pano", name: "项目全景" },
-    { id: "pit", name: "基坑区域" },
-    { id: "face", name: "作业面" },
-    { id: "equip", name: "施工装备" },
+    { id: "vr", name: "VR360环视" },
+    { id: "air", name: "全景航拍" },
+    { id: "equip", name: "设备设施" },
     { id: "yard", name: "材料堆场" },
-    { id: "layout", name: "现场场布" }
+    { id: "gate", name: "出入口管控" },
+    { id: "safe", name: "安全巡查" }
   ];
   const patrolPhotos = [
-    { id: "pano", cat: "pano", name: "项目全景", src: "drone", img: "img/patrol-pano.jpg?v=20261029d", pos: "fit", time: "16:12" },
-    { id: "pano-2", cat: "pano", name: "项目鸟瞰", src: "drone", img: "img/aerial-a.jpg?v=20261029d", pos: "fit", time: "15:48" },
-    { id: "pit-slope", cat: "pit", name: "基坑边坡", src: "drone", img: "img/aerial-b.jpg?v=20261029d", pos: "p-l", time: "15:28" },
-    { id: "pit-edge", cat: "pit", name: "坑边", src: "drone", img: "img/aerial-b.jpg?v=20261029d", pos: "p-r", time: "15:22" },
-    { id: "pit-drain", cat: "pit", name: "排水沟", src: "drone", img: "img/aerial-a.jpg?v=20261029d", pos: "p-b", time: "15:16" },
-    { id: "face-work", cat: "face", name: "作业面", src: "drone", img: "img/patrol-face.jpg?v=20261029d", pos: "fit", time: "14:55" },
-    { id: "face-scaffold", cat: "face", name: "外架/悬挑架", src: "drone", img: "img/aerial-b.jpg?v=20261029d", pos: "p-tl", time: "14:48" },
+    { id: "vr-1", cat: "vr", name: "VR360环视", src: "vr", img: "img/patrol-pano.jpg?v=20261029d", pos: "fit", time: "16:12", vr: true },
+    { id: "air-1", cat: "air", name: "项目航拍", src: "drone", img: "img/aerial-a.jpg?v=20261029d", pos: "fit", time: "15:48" },
+    { id: "air-2", cat: "air", name: "场区鸟瞰", src: "drone", img: "img/patrol-layout.jpg?v=20261029d", pos: "fit", time: "16:18" },
+    { id: "air-3", cat: "air", name: "场区全景", src: "drone", img: "img/patrol-layout-2.jpg?v=20261029d", pos: "fit", time: "16:26" },
+    { id: "air-4", cat: "air", name: "基坑航拍", src: "drone", img: "img/aerial-b.jpg?v=20261029d", pos: "fit", time: "15:28" },
     { id: "equip-crane", cat: "equip", name: "塔机", src: "drone", img: "img/patrol-crane.jpg?v=20261029d", pos: "fit", time: "16:50" },
     { id: "equip-crane-2", cat: "equip", name: "塔吊", src: "drone", img: "img/patrol-crane-2.jpg?v=20261029d", pos: "fit", time: "16:55" },
     { id: "equip-lift", cat: "equip", name: "施工电梯", src: "cam", img: "img/cam-crane2.jpg?v=20261029d", pos: "p-r", time: "16:42" },
+    { id: "yard-stock", cat: "yard", name: "材料堆场", src: "drone", img: "img/patrol-yard.jpg?v=20261029d", pos: "fit", time: "16:48" },
     { id: "yard-rebar", cat: "yard", name: "钢筋加工棚", src: "cam", img: "img/cam-crane2.jpg?v=20261029d", pos: "p-b", time: "16:36" },
     { id: "yard-form", cat: "yard", name: "模板加工区", src: "cam", img: "img/cam-crane2.jpg?v=20261029d", pos: "p-t", time: "16:28" },
-    { id: "yard-stock", cat: "yard", name: "堆场", src: "drone", img: "img/patrol-yard.jpg?v=20261029d", pos: "fit", time: "16:48" },
-    { id: "layout", cat: "layout", name: "现场场布", src: "drone", img: "img/patrol-layout.jpg?v=20261029d", pos: "fit", time: "16:18" },
-    { id: "layout-2", cat: "layout", name: "场区鸟瞰", src: "drone", img: "img/patrol-layout-2.jpg?v=20261029d", pos: "fit", time: "16:26" },
-    { id: "layout-road", cat: "layout", name: "道路", src: "drone", img: "img/patrol-road.jpg?v=20261029d", pos: "fit", time: "16:34" },
-    { id: "layout-power", cat: "layout", name: "配电箱", src: "drone", img: "img/patrol-power.jpg?v=20261029d", pos: "fit", time: "16:40" }
+    { id: "gate-main", cat: "gate", name: "场区出入口", src: "cam", img: "img/patrol-road.jpg?v=20261029d", pos: "fit", time: "16:34" },
+    { id: "gate-cam", cat: "gate", name: "门岗监控", src: "cam", img: "img/cam-crane2.jpg?v=20261029d", pos: "fit", time: "16:20" },
+    { id: "safe-face", cat: "safe", name: "作业面", src: "drone", img: "img/patrol-face.jpg?v=20261029d", pos: "fit", time: "14:55" },
+    { id: "safe-scaffold", cat: "safe", name: "外架", src: "drone", img: "img/aerial-b.jpg?v=20261029d", pos: "p-tl", time: "14:48" },
+    { id: "safe-power", cat: "safe", name: "配电箱", src: "drone", img: "img/patrol-power.jpg?v=20261029d", pos: "fit", time: "16:40" }
   ];
-  let patrolCat = "pano";
+  let patrolCat = "vr";
 
   function patrolCatOf(id) {
     return patrolCats.find((c) => c.id === id);
   }
 
   function patrolSrcTag(src) {
+    if (src === "vr") return `<span class="alarm-src alarm-src-drone">360</span>`;
     return src === "drone"
       ? `<span class="alarm-src alarm-src-drone">无人机</span>`
       : `<span class="alarm-src alarm-src-cam">视频监控</span>`;
@@ -660,6 +660,7 @@
         const cat = patrolCatOf(p.cat);
         return `
           <button class="patrol-card" type="button" data-patrol-photo="${p.id}">
+            ${p.vr ? `<span class="patrol-vr">360</span>` : ""}
             <img class="${p.pos}" src="${p.img}" alt="${p.name}" />
             <div class="patrol-card-ft">
               <div class="patrol-card-name">
@@ -702,6 +703,9 @@
   const photoViewState = {
     photo: null,
     hd: false,
+    yaw: 0.5,
+    pitch: 0,
+    fov: 0.7,
     scale: 1,
     x: 0,
     y: 0,
@@ -722,22 +726,77 @@
     applyPhotoZoom();
   }
 
+  const vrImg = new Image();
+
+  function renderVr() {
+    const canvas = document.getElementById("vrCanvas");
+    const view = document.getElementById("photoView");
+    if (!canvas || !view || !vrImg.naturalWidth) return;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const w = Math.max(2, Math.round(view.clientWidth * dpr));
+    const h = Math.max(2, Math.round(view.clientHeight * dpr));
+    if (canvas.width !== w) canvas.width = w;
+    if (canvas.height !== h) canvas.height = h;
+    const ctx = canvas.getContext("2d");
+    const iw = vrImg.naturalWidth;
+    const ih = vrImg.naturalHeight;
+    const fov = photoViewState.fov;
+    let cropW = iw * fov;
+    let cropH = cropW * h / w;
+    if (cropH > ih * 0.96) {
+      cropH = ih * 0.96;
+      cropW = cropH * w / h;
+    }
+    const yaw = ((photoViewState.yaw % 1) + 1) % 1;
+    let x0 = yaw * iw - cropW / 2;
+    while (x0 < 0) x0 += iw;
+    while (x0 >= iw) x0 -= iw;
+    const maxY = Math.max(0, ih - cropH);
+    const sy = maxY * (0.5 + photoViewState.pitch);
+    const firstW = Math.min(cropW, iw - x0);
+    ctx.drawImage(vrImg, x0, sy, firstW, cropH, 0, 0, w * firstW / cropW, h);
+    if (firstW < cropW - 0.5) {
+      const rest = cropW - firstW;
+      ctx.drawImage(vrImg, 0, sy, rest, cropH, w * firstW / cropW, 0, w * rest / cropW, h);
+    }
+  }
+
+  function loadVr(src) {
+    if (vrImg.getAttribute("data-src") === src && vrImg.complete && vrImg.naturalWidth) {
+      requestAnimationFrame(renderVr);
+      return;
+    }
+    vrImg.onload = () => requestAnimationFrame(renderVr);
+    vrImg.setAttribute("data-src", src);
+    vrImg.src = src;
+  }
+
   function openPhotoStage(photo) {
     photoViewState.photo = photo;
     photoViewState.hd = false;
     photoViewState.pointers.clear();
+    photoViewState.yaw = 0.5;
+    photoViewState.pitch = 0;
+    photoViewState.fov = 0.7;
     resetPhotoZoom();
+    const stage = document.getElementById("photoStage");
+    const vr = !!photo.vr;
+    stage.classList.toggle("is-vr", vr);
     document.getElementById("photoTitle").textContent = photo.name;
+    document.getElementById("photoTip").textContent = vr ? "左右拖动环视" : "双指缩放，单指拖动";
     const img = document.getElementById("photoImg");
     img.alt = photo.name;
     img.src = photo.img;
     const hd = document.getElementById("photoHd");
+    hd.hidden = vr;
     hd.disabled = false;
     hd.textContent = "原图";
-    document.getElementById("photoStage").hidden = false;
+    stage.hidden = false;
+    if (vr) loadVr(photo.img);
   }
 
   function closePhotoStage() {
+    document.getElementById("photoStage").classList.remove("is-vr");
     document.getElementById("photoStage").hidden = true;
     photoViewState.photo = null;
     photoViewState.pointers.clear();
@@ -789,6 +848,12 @@
     view.addEventListener("wheel", (e) => {
       if (document.getElementById("photoStage").hidden) return;
       e.preventDefault();
+      const photo = photoViewState.photo;
+      if (photo && photo.vr) {
+        photoViewState.fov = Math.min(0.92, Math.max(0.38, photoViewState.fov * (e.deltaY < 0 ? 0.92 : 1.08)));
+        renderVr();
+        return;
+      }
       const next = photoViewState.scale * (e.deltaY < 0 ? 1.12 : 0.89);
       photoViewState.scale = Math.min(4, Math.max(1, next));
       if (photoViewState.scale === 1) {
@@ -798,6 +863,13 @@
       applyPhotoZoom();
     }, { passive: false });
     view.addEventListener("dblclick", () => {
+      if (photoViewState.photo && photoViewState.photo.vr) {
+        photoViewState.yaw = 0.5;
+        photoViewState.pitch = 0;
+        photoViewState.fov = 0.7;
+        renderVr();
+        return;
+      }
       if (photoViewState.scale > 1) resetPhotoZoom();
       else {
         photoViewState.scale = 2;
@@ -816,14 +888,25 @@
       if (photoViewState.pointers.size === 2) {
         const dist = pointerSpan();
         if (photoViewState.pinch > 0 && dist > 0) {
-          photoViewState.scale = Math.min(4, Math.max(1, photoViewState.scale * (dist / photoViewState.pinch)));
-          if (photoViewState.scale === 1) {
-            photoViewState.x = 0;
-            photoViewState.y = 0;
+          if (photoViewState.photo && photoViewState.photo.vr) {
+            photoViewState.fov = Math.min(0.92, Math.max(0.38, photoViewState.fov * (photoViewState.pinch / dist)));
+            renderVr();
+          } else {
+            photoViewState.scale = Math.min(4, Math.max(1, photoViewState.scale * (dist / photoViewState.pinch)));
+            if (photoViewState.scale === 1) {
+              photoViewState.x = 0;
+              photoViewState.y = 0;
+            }
+            applyPhotoZoom();
           }
           photoViewState.pinch = dist;
-          applyPhotoZoom();
         }
+        return;
+      }
+      if (photoViewState.photo && photoViewState.photo.vr) {
+        photoViewState.yaw -= (e.clientX - prev.x) / view.clientWidth * photoViewState.fov;
+        photoViewState.pitch = Math.max(-0.45, Math.min(0.45, photoViewState.pitch + (e.clientY - prev.y) / view.clientHeight * 0.45));
+        renderVr();
         return;
       }
       if (photoViewState.scale > 1) {
@@ -3589,7 +3672,7 @@
     const btn = e.target.closest(".home-mod");
     if (!btn) return;
     homeMod = btn.dataset.mod;
-    if (homeMod === "progress") patrolCat = "pano";
+    if (homeMod === "progress") patrolCat = "vr";
     document.querySelectorAll(".home-mod").forEach((b) => b.classList.toggle("on", b === btn));
     renderHomePanel(homeMod);
   });

@@ -12,7 +12,7 @@
   <title>向阳村项目智能建造管理平台</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="preload" as="image" href="img/site-map.jpg?v=20261110map" />
-  <link rel="stylesheet" href="css/app.css?v=20261029za142" />
+  <link rel="stylesheet" href="css/app.css?v=20261029za144" />
   <script>
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", function () {
@@ -326,11 +326,12 @@
           </div>
           <div class="photo-stage-view" id="photoView">
             <img id="photoImg" alt="" draggable="false" />
+            <canvas id="vrCanvas"></canvas>
           </div>
-          <p class="photo-stage-tip">双指缩放，单指拖动</p>
+          <p class="photo-stage-tip" id="photoTip">双指缩放，单指拖动</p>
         </div>
     </div>
   </div>
-  <script src="js/app.js?v=20261029za162"></script>
+  <script src="js/app.js?v=20261029za163"></script>
 </body>
 </html>
