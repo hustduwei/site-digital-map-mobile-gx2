@@ -1227,7 +1227,7 @@ button, input, textarea { font-family: inherit; color: inherit; }
 }
 
 .home-mod small {
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 500;
   line-height: 1.25;
   color: #8A9BB0;
@@ -5157,6 +5157,7 @@ button.alarm-hist-row {
 }
 
 .msg-item {
+  position: relative;
   padding: 14px 16px;
   gap: 12px;
   align-items: center;
@@ -5176,7 +5177,7 @@ button.alarm-hist-row {
   height: 22px;
 }
 
-.msg-ico.people { background: #F77234; }
+.msg-ico.snap { background: #F77234; }
 .msg-ico.inspect { background: #22C55E; }
 
 .msg-item h4 {
@@ -5185,20 +5186,25 @@ button.alarm-hist-row {
   color: var(--text);
 }
 
+.msg-item .meta { min-width: 0; }
+
+.msg-item h4 { padding-right: 96px; }
+
 .msg-item p {
   margin-top: 4px;
   font-size: 13px;
   color: #4E5969;
+  white-space: nowrap;
 }
 
 .msg-side {
+  position: absolute;
+  top: 14px;
+  right: 16px;
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  justify-content: space-between;
-  align-self: stretch;
-  padding: 2px 0;
-  flex-shrink: 0;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
 }
 
 .msg-time { font-size: 12px; color: #C0C4CC; }

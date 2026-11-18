@@ -5,13 +5,13 @@
     `<svg viewBox="0 0 24 24"><path d="${d}"/></svg>`;
 
   const msgIco = {
-    people: `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.2" r="2.8"/><path d="M5.8 19.2c.8-3.2 3.1-4.8 6.2-4.8s5.4 1.6 6.2 4.8"/></svg>`,
+    snap: `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.4 9.2h3.1l1.3-2.2h6.4l1.3 2.2h3.1v9.2H4.4z"/><circle cx="12" cy="13.9" r="3.1"/></svg>`,
     inspect: `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="6.2" cy="6.2" r="2"/><circle cx="17.8" cy="6.2" r="2"/><circle cx="6.2" cy="17.8" r="2"/><circle cx="17.8" cy="17.8" r="2"/><path d="M8.2 6.2h7.6M8.2 17.8h7.6M6.2 8.2v7.6M17.8 8.2v7.6"/><rect x="10" y="10" width="4" height="4" rx="0.8"/></svg>`
   };
 
   const messages = [
-    { kind: "people", title: "人员预警", desc: "这是一条人员预警消息", time: "15:51:45", unread: 1 },
-    { kind: "inspect", title: "巡检预警", desc: "无人机巡检识别到道路垃圾、电缆拖地等现场风险", time: "1分钟前", unread: 1 }
+    { kind: "snap", title: "随手拍预警", desc: "现场人员随手拍隐患", time: "12分钟前", unread: 1 },
+    { kind: "inspect", title: "巡检预警", desc: "无人机、视频监控 AI 智能识别风险", time: "1分钟前", unread: 1 }
   ];
 
   const menuSvg = {
@@ -140,14 +140,14 @@
     return older[(off - known.length - 1) % older.length];
   }
 
-  function alarmTrendSvg(fillId) {
+  function alarmTrendSvg(fillId, getCount) {
     const end = protoToday();
     const days = [];
     const vals = [];
     for (let i = 6; i >= 0; i--) {
       const d = addDays(end, -i);
       days.push((d.getMonth() + 1) + "/" + d.getDate());
-      vals.push(alarmDayCount(d));
+      vals.push((getCount || alarmDayCount)(d));
     }
     const w = 260;
     const h = 78;
@@ -2620,7 +2620,7 @@
 
   function renderMsgs() {
     document.getElementById("msgList").innerHTML = messages.map((m) => `
-      <div class="msg-item${m.kind === "inspect" ? " is-link" : ""}" data-kind="${m.kind}">
+      <div class="msg-item is-link" data-kind="${m.kind}">
         <div class="msg-ico ${m.kind}">${msgIco[m.kind]}</div>
         <div class="meta">
           <h4>${m.title}</h4>
@@ -2674,7 +2674,7 @@
 
   function alarmsOnDate(d) {
     const key = dateKey(d);
-    return inspectAlarms.filter((a) => a.day === "hist" && a.at.slice(0, 10) === key);
+    return inspectAlarms.filter((a) => a.day === "hist" && a.src !== "snap" && a.at.slice(0, 10) === key);
   }
 
   function inspCalMaxDay() {
@@ -2714,7 +2714,7 @@
   }
 
   function renderInspectList() {
-    const today = inspectAlarms.filter((a) => a.day === "today");
+    const today = inspectAlarms.filter((a) => a.day === "today" && a.src !== "snap");
     const hist = alarmsOnDate(inspHistDate);
     const histLab = formatCamDate(inspHistDate);
     const onHist = inspTab === "hist";
@@ -2729,7 +2729,7 @@
             <div class="home-stat alert"><b>${today.length}</b><span>今日预警数</span></div>
             <div class="home-chart-card alarm-mini">
               <span class="alarm-mini-lab">近7日预警趋势</span>
-              ${alarmTrendSvg("inspAlarmFill")}
+              ${alarmTrendSvg("inspAlarmFill", (d) => sameDay(d, protoToday()) ? today.length : alarmDayCount(d))}
             </div>
           </div>
           <div class="insp-list">${today.map(inspectListItem).join("")}</div>
@@ -2998,6 +2998,157 @@
     paintSub("巡检预警", renderInspectList());
   }
 
+  const snapReports = [
+    { id: "s-net", day: "today", type: "安全防护", desc: "楼层临边安全网缺失，请立即整改。", img: "img/alarm-net.jpg?v=20261029d", who: "张工", role: "安全员", rel: "12分钟前", at: "2026-10-08 15:10:00" },
+    { id: "s-cable", day: "today", type: "用电隐患", desc: "作业面临时电缆拖地，未做架空。", img: "img/alarm-cable.jpg?v=20261029d", who: "李工", role: "电工", rel: "4小时前", at: "2026-10-08 11:26:00" },
+    { id: "s-trash", day: "hist", type: "文明施工", desc: "材料堆放占用施工通道。", img: "img/alarm-trash.jpg?v=20261029d", who: "王工", role: "施工员", rel: "昨天 16:40", at: "2026-10-07 16:40:00" },
+    { id: "s-soil", day: "hist", type: "消防通道", desc: "地下室消防通道堆放杂物。", img: "img/alarm-soil.jpg?v=20261029d", who: "张工", role: "安全员", rel: "10/5 09:12", at: "2026-10-05 09:12:00" }
+  ];
+
+  let snapTab = "today";
+  let snapHistDate = addDays(protoToday(), -1);
+  let snapCalMonth = startOfDay(new Date(snapHistDate.getFullYear(), snapHistDate.getMonth(), 1));
+
+  function snapDayCount(d) {
+    const key = dateKey(d);
+    if (sameDay(d, protoToday())) return snapReports.filter((a) => a.day === "today").length;
+    return snapReports.filter((a) => a.day === "hist" && a.at.slice(0, 10) === key).length;
+  }
+
+  function snapsOnDate(d) {
+    const key = dateKey(d);
+    return snapReports.filter((a) => a.day === "hist" && a.at.slice(0, 10) === key);
+  }
+
+  function snapListItem(a) {
+    return `
+      <div class="insp-item" data-snap="${a.id}" role="button">
+        <img class="insp-pic" src="${a.img}" alt="${a.type}" />
+        <div class="insp-meta">
+          <div class="insp-hd">
+            <strong>${a.type}</strong>
+          </div>
+          <p>${a.desc}</p>
+        </div>
+        <span class="insp-time">${a.rel}</span>
+      </div>`;
+  }
+
+  function snapCalEls() {
+    return {
+      cal: document.getElementById("snapCal"),
+      title: document.getElementById("snapCalTitle"),
+      grid: document.getElementById("snapCalGrid"),
+      prev: document.getElementById("snapCalPrev"),
+      next: document.getElementById("snapCalNext")
+    };
+  }
+
+  function paintSnapCal() {
+    const els = snapCalEls();
+    if (!els.cal) return;
+    fillMonthCal(snapCalMonth, snapHistDate, els.title, els.grid, els.prev, els.next, {
+      maxDay: inspCalMaxDay()
+    });
+  }
+
+  function hideSnapCal() {
+    const cal = document.getElementById("snapCal");
+    if (cal) cal.classList.add("hide");
+  }
+
+  function showSnapCal() {
+    snapCalMonth = startOfDay(new Date(snapHistDate.getFullYear(), snapHistDate.getMonth(), 1));
+    paintSnapCal();
+    const cal = document.getElementById("snapCal");
+    if (cal) cal.classList.remove("hide");
+    const hist = subBody.querySelector(".snap-page .insp-hist");
+    if (hist) hist.scrollIntoView({ block: "start" });
+  }
+
+  function renderSnapList() {
+    const today = snapReports.filter((a) => a.day === "today");
+    const hist = snapsOnDate(snapHistDate);
+    const histLab = formatCamDate(snapHistDate);
+    const onHist = snapTab === "hist";
+    return `
+      <div class="insp-page snap-page">
+        <div class="insp-tabs">
+          <button class="insp-tab${onHist ? "" : " on"}" type="button" data-snap-tab="today">今日预警</button>
+          <button class="insp-tab${onHist ? " on" : ""}" type="button" data-snap-tab="hist">历史预警</button>
+        </div>
+        <div class="insp-pane${onHist ? " hide" : ""}">
+          <div class="home-stats alarm-row">
+            <div class="home-stat alert"><b>${today.length}</b><span>今日预警数</span></div>
+            <div class="home-chart-card alarm-mini">
+              <span class="alarm-mini-lab">近7日预警趋势</span>
+              ${alarmTrendSvg("snapAlarmFill", snapDayCount)}
+            </div>
+          </div>
+          <div class="insp-list">${today.map(snapListItem).join("")}</div>
+        </div>
+        <div class="insp-pane insp-hist${onHist ? "" : " hide"}">
+          <div class="insp-hist-hd">
+            <div>
+              <strong>${sameDay(snapHistDate, inspCalMaxDay()) ? "昨天" : histLab}</strong>
+              <span>${hist.length}条</span>
+            </div>
+            <button class="cam-day cam-day-pick on" type="button" data-snap-cal-open="1">
+              ${sameDay(snapHistDate, inspCalMaxDay()) ? "昨天" : formatMD(snapHistDate)}
+              ${calIco}
+            </button>
+          </div>
+          <div class="cam-cal hide" id="snapCal">
+            <div class="cam-cal-hd">
+              <button class="cam-cal-nav" id="snapCalPrev" type="button" aria-label="上一月">‹</button>
+              <strong id="snapCalTitle">2026年10月</strong>
+              <button class="cam-cal-nav" id="snapCalNext" type="button" aria-label="下一月">›</button>
+            </div>
+            <div class="cam-cal-week">
+              <span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span>
+            </div>
+            <div class="cam-cal-grid" id="snapCalGrid"></div>
+          </div>
+          ${hist.length
+            ? `<div class="insp-list">${hist.map(snapListItem).join("")}</div>`
+            : `<div class="insp-empty">该日暂无随手拍预警</div>`}
+        </div>
+      </div>`;
+  }
+
+  function renderSnapDetail(a) {
+    return `
+      <div class="alarm-hero">
+        <img src="${a.img}" alt="${a.type}" />
+        <div class="alarm-hero-tag">
+          <strong>${a.who}</strong>
+          <span>${a.role}</span>
+        </div>
+      </div>
+      <div class="alarm-info">
+        <h4>上报信息</h4>
+        <div class="alarm-kv"><span>隐患类型</span><em>${a.type}</em></div>
+        <div class="alarm-kv"><span>上报时间</span><em>${a.at}</em></div>
+        <div class="alarm-kv"><span>问题描述</span><em>${a.desc}</em></div>
+      </div>`;
+  }
+
+  function openSnapList(tab) {
+    if (tab === "today" || tab === "hist") snapTab = tab;
+    subBack = null;
+    subpage.classList.remove("is-alarm", "is-dark");
+    paintSub("随手拍预警", renderSnapList());
+  }
+
+  function openSnapDetail(id) {
+    const a = snapReports.find((item) => item.id === id);
+    if (!a) return;
+    subBack = openSnapList;
+    subpage.classList.remove("is-dark");
+    subpage.classList.add("is-alarm");
+    paintSub("预警详情", renderSnapDetail(a));
+  }
+
   function openAlarmDetail(id, fromList) {
     const a = alarmById(id);
     if (!a) return;
@@ -3017,6 +3168,11 @@
     const inspCal = document.getElementById("inspCal");
     if (force !== true && inspCal && !inspCal.classList.contains("hide")) {
       hideInspCal();
+      return;
+    }
+    const snapCal = document.getElementById("snapCal");
+    if (force !== true && snapCal && !snapCal.classList.contains("hide")) {
+      hideSnapCal();
       return;
     }
     const alarmCal = document.getElementById("alarmHistCal");
@@ -3073,8 +3229,9 @@
 
   document.getElementById("msgList").addEventListener("click", (e) => {
     const item = e.target.closest(".msg-item");
-    if (!item || item.dataset.kind !== "inspect") return;
-    openInspectList("today");
+    if (!item) return;
+    if (item.dataset.kind === "inspect") openInspectList("today");
+    else if (item.dataset.kind === "snap") openSnapList("today");
   });
 
   subBody.addEventListener("click", (e) => {
@@ -3248,6 +3405,47 @@
       if (!cal) return;
       if (cal.classList.contains("hide")) showInspCal();
       else hideInspCal();
+      return;
+    }
+    const snapPrev = e.target.closest("#snapCalPrev");
+    if (snapPrev) {
+      if (snapPrev.disabled) return;
+      snapCalMonth.setMonth(snapCalMonth.getMonth() - 1);
+      paintSnapCal();
+      return;
+    }
+    const snapNext = e.target.closest("#snapCalNext");
+    if (snapNext) {
+      if (snapNext.disabled) return;
+      snapCalMonth.setMonth(snapCalMonth.getMonth() + 1);
+      paintSnapCal();
+      return;
+    }
+    const snapCalDay = e.target.closest("#snapCalGrid [data-cal]");
+    if (snapCalDay) {
+      if (snapCalDay.disabled) return;
+      const [y, m, d] = snapCalDay.dataset.cal.split("-").map(Number);
+      snapHistDate = startOfDay(new Date(y, m - 1, d));
+      openSnapList("hist");
+      return;
+    }
+    const snapTabBtn = e.target.closest("[data-snap-tab]");
+    if (snapTabBtn) {
+      hideSnapCal();
+      openSnapList(snapTabBtn.dataset.snapTab);
+      return;
+    }
+    const snapPick = e.target.closest("[data-snap-cal-open]");
+    if (snapPick) {
+      const cal = document.getElementById("snapCal");
+      if (!cal) return;
+      if (cal.classList.contains("hide")) showSnapCal();
+      else hideSnapCal();
+      return;
+    }
+    const snapItem = e.target.closest("[data-snap]");
+    if (snapItem) {
+      openSnapDetail(snapItem.dataset.snap);
       return;
     }
     const alarmPrev = e.target.closest("#alarmHistCalPrev");
