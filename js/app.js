@@ -28,24 +28,15 @@
 
   const camPosCycle = ["pos-left", "pos-right", "pos-bottom", ""];
   const cameras = [
-    { id: "g1", name: "1#门监控", group: "出入口" },
-    { id: "g1a", name: "1#门安全通道门禁监控", group: "出入口" },
-    { id: "g2a", name: "2#门监控1", group: "出入口" },
-    { id: "g2b", name: "2#门监控2", group: "出入口" },
-    { id: "g3out", name: "3#门外监控", group: "出入口" },
-    { id: "g4", name: "4#门监控", group: "出入口" },
-    { id: "g4a", name: "4#门安全通道门禁监控", group: "出入口" },
-    { id: "g5", name: "5#门监控", group: "出入口" },
-    { id: "g5out", name: "5#门外监控", group: "出入口" },
-    { id: "cama", name: "监控A", group: "场内" },
-    { id: "camb", name: "监控B", group: "场内" },
-    { id: "weigh", name: "地磅全景", group: "场内" },
-    { id: "rebar", name: "钢筋加工棚", group: "场内" },
-    { id: "yard1", name: "场内1", group: "场内" },
-    { id: "yard2", name: "场内2", group: "场内" },
-    { id: "talk", name: "安全讲台", group: "场内" },
-    { id: "crane2", name: "2#塔吊", group: "塔吊" },
-    { id: "crane4", name: "4#塔吊", group: "塔吊" }
+    { id: "crane2", name: "2#塔机", group: "设备设施" },
+    { id: "crane4", name: "4#塔机", group: "设备设施" },
+    { id: "weigh", name: "智能地磅", group: "设备设施" },
+    { id: "rebar", name: "钢筋加工棚", group: "设备设施" },
+    { id: "yard", name: "材料堆场", group: "材料堆场" },
+    { id: "g2in", name: "2#门内", group: "出入口管控" },
+    { id: "g2out", name: "2#门外", group: "出入口管控" },
+    { id: "g4in", name: "4#门内", group: "出入口管控" },
+    { id: "g4out", name: "4#门外", group: "出入口管控" }
   ].map((c) => Object.assign(c, { img: "img/cam-crane2.jpg?v=20261029d", pos: "" }));
   const camShotPool = ["img/cam-crane2.jpg?v=20261029d", "img/cam-crane2.jpg?v=20261029d", "img/cam-crane2.jpg?v=20261029d"];
   const camShotTimes = ["08:12", "12:36", "16:50"];
@@ -4137,20 +4128,55 @@
   const airCalGrid = document.getElementById("airCalGrid");
   const airCalPrev = document.getElementById("airCalPrev");
   const airCalNext = document.getElementById("airCalNext");
-  const airImgs = ["img/aerial-a.jpg?v=20261029d", "img/aerial-b.jpg?v=20261029d"];
-  const airTimes = ["07:22", "08:15", "09:08", "10:32", "11:46", "13:18", "14:55", "16:12", "17:38", "18:21"];
-  const airPos = ["pos-tl", "pos-tr", "pos-c", "pos-bl", "pos-br", "pos-l", "pos-r", "pos-t", "pos-b", "pos-c"];
+  const airTypesEl = document.getElementById("airTypes");
+  const airTypes = [
+    { id: "vr", name: "VR360环视" },
+    { id: "ortho", name: "正射" },
+    { id: "global", name: "全局定点拍照" },
+    { id: "zone", name: "分区定点拍照" },
+    { id: "crane", name: "塔吊定点" }
+  ];
+  const airSets = {
+    vr: [
+      { name: "VR360环视", time: "16:12", img: "img/patrol-pano.jpg?v=20261029d", pos: "pos-c", vr: true }
+    ],
+    ortho: [
+      { name: "正射全图", time: "09:10", img: "img/aerial-a.jpg?v=20261029d", pos: "pos-c" },
+      { name: "正射东区", time: "11:26", img: "img/aerial-b.jpg?v=20261029d", pos: "pos-l" },
+      { name: "正射西区", time: "15:40", img: "img/patrol-layout.jpg?v=20261029d", pos: "pos-r" }
+    ],
+    global: [
+      { name: "全局定点", time: "07:22", img: "img/aerial-a.jpg?v=20261029d", pos: "pos-c" },
+      { name: "全局定点", time: "09:08", img: "img/aerial-b.jpg?v=20261029d", pos: "pos-tl" },
+      { name: "全局定点", time: "10:32", img: "img/patrol-layout-2.jpg?v=20261029d", pos: "pos-tr" },
+      { name: "全局定点", time: "13:18", img: "img/patrol-layout.jpg?v=20261029d", pos: "pos-c" },
+      { name: "全局定点", time: "16:12", img: "img/aerial-a.jpg?v=20261029d", pos: "pos-bl" },
+      { name: "全局定点", time: "17:38", img: "img/aerial-b.jpg?v=20261029d", pos: "pos-br" }
+    ],
+    zone: [
+      { name: "1#楼", time: "08:15", img: "img/patrol-face.jpg?v=20261029d", pos: "pos-c" },
+      { name: "2#楼", time: "08:42", img: "img/aerial-b.jpg?v=20261029d", pos: "pos-l" },
+      { name: "3#楼", time: "09:20", img: "img/aerial-a.jpg?v=20261029d", pos: "pos-r" },
+      { name: "4#楼", time: "10:05", img: "img/patrol-layout.jpg?v=20261029d", pos: "pos-tl" },
+      { name: "酒店", time: "11:16", img: "img/patrol-layout-2.jpg?v=20261029d", pos: "pos-tr" },
+      { name: "幼儿园", time: "13:40", img: "img/aerial-b.jpg?v=20261029d", pos: "pos-bl" },
+      { name: "场布", time: "15:08", img: "img/patrol-yard.jpg?v=20261029d", pos: "pos-c" },
+      { name: "地下室", time: "16:36", img: "img/patrol-face.jpg?v=20261029d", pos: "pos-b" }
+    ],
+    crane: [
+      { name: "2#塔机", time: "09:30", img: "img/patrol-crane.jpg?v=20261029d", pos: "pos-c" },
+      { name: "4#塔机", time: "10:18", img: "img/patrol-crane-2.jpg?v=20261029d", pos: "pos-l" },
+      { name: "塔机基础", time: "14:06", img: "img/patrol-crane.jpg?v=20261029d", pos: "pos-b" },
+      { name: "塔机覆盖区", time: "16:44", img: "img/patrol-crane-2.jpg?v=20261029d", pos: "pos-r" }
+    ]
+  };
+  let airType = "vr";
   let airDate = startOfDay(new Date());
   let airCalMonth = startOfDay(new Date());
   let airList = [];
 
-  function airShots(day) {
-    const n = 8 + (Math.abs(day) % 3);
-    return airTimes.slice(0, n).map((t, i) => ({
-      time: t,
-      img: airImgs[(i + Math.abs(day)) % airImgs.length],
-      pos: airPos[i % airPos.length]
-    }));
+  function airShots() {
+    return (airSets[airType] || []).slice();
   }
 
   function hideAirCal() {
@@ -4169,14 +4195,19 @@
 
   function renderAir() {
     airDays.innerHTML = dayPickChips(airDate, 'data-air-cal-open="1"');
-    const offset = dayOffsetOf(airDate);
-    airList = airShots(offset);
+    const type = airTypes.find((t) => t.id === airType) || airTypes[0];
+    airList = airShots();
     const label = formatCamDate(airDate);
-    airHint.textContent = label + "  无人机定点拍摄  " + airList.length + " 张";
+    airTypesEl.innerHTML = airTypes.map((t) => {
+      const n = (airSets[t.id] || []).length;
+      return `<button class="air-type${t.id === type.id ? " on" : ""}" type="button" data-air-type="${t.id}">${t.name}<em>${n}</em></button>`;
+    }).join("");
+    airHint.textContent = label + "  " + type.name + "  " + airList.length + " 张";
     airGrid.innerHTML = airList.map((s, i) => `
       <button class="air-card" type="button" data-air="${i}">
-        <img class="${s.pos}" src="${s.img}" alt="${label} ${s.time} 航拍" />
-        <span>${label} ${s.time}</span>
+        <img class="${s.pos}" src="${s.img}" alt="${s.name}" />
+        <span>${s.name}</span>
+        <small>${label} ${s.time}</small>
       </button>`).join("");
   }
 
@@ -4184,6 +4215,7 @@
     closeCam();
     closeHazard();
     airDate = startOfDay(new Date());
+    airType = "vr";
     hideAirCal();
     airPop.classList.remove("open");
     renderAir();
@@ -4314,6 +4346,15 @@
     closeAir();
   });
 
+  airTypesEl.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-air-type]");
+    if (!btn) return;
+    airType = btn.dataset.airType;
+    hideAirCal();
+    airPop.classList.remove("open");
+    renderAir();
+  });
+
   airDays.addEventListener("click", (e) => {
     const pick = e.target.closest("[data-air-cal-open]");
     if (pick) {
@@ -4358,8 +4399,9 @@
     if (!shot) return;
     const label = formatCamDate(airDate);
     openPhotoStage({
-      name: "定点航拍 " + label + " " + shot.time,
-      img: shot.img
+      name: shot.name + " " + label + " " + shot.time,
+      img: shot.img,
+      vr: !!shot.vr
     });
   });
 

@@ -4681,6 +4681,52 @@ button.alarm-hist-row {
 
 .air-days .cam-day { flex-shrink: 0; }
 
+.air-types {
+  flex-shrink: 0;
+  display: flex;
+  gap: 6px;
+  margin: 0 12px 10px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.air-types::-webkit-scrollbar { display: none; }
+
+.air-type {
+  flex: 0 0 auto;
+  height: 30px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 99px;
+  background: #fff;
+  color: #4E5969;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.air-type em {
+  margin-left: 4px;
+  font-style: normal;
+  font-weight: 500;
+  color: #86909C;
+}
+
+.air-type.on {
+  background: var(--blue);
+  color: #fff;
+}
+
+.air-type.on em { color: rgba(255, 255, 255, 0.86); }
+
+.air-card small {
+  display: block;
+  margin-top: 2px;
+  font-size: 11px;
+  color: #86909C;
+}
+
 .air-player .cam-cal {
   top: 80px;
 }
