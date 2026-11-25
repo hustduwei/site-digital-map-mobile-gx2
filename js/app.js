@@ -2143,7 +2143,11 @@
 
   let craneChartTab = "2";
   let cranePageTab = "live";
-  let craneReportKind = "day";
+  let craneReportKind = "week";
+  let craneReportDev = "2";
+  let craneReportAnchor = null;
+  let craneCalOpen = false;
+  let craneCalMonth = null;
 
   function renderCraneAnalysis() {
     const u = craneDetails.find((c) => c.id === craneChartTab) || craneDetails[0];
@@ -2290,216 +2294,433 @@
     return Math.round(list.reduce((sum, n) => sum + n, 0) / list.length);
   }
 
-  function craneReportModel() {
-    const rows = craneDetails.map((u) => {
-      const day = u.history[0];
+  const CRANE_RATED_T = 5;
+  const craneHourBase = [1, 0, 0, 0, 0, 0, 6, 10, 16, 6, 1, 0, 0, 2, 5, 6, 2, 0, 0, 0, 0, 0, 0, 0];
+  const craneLoadBase = [6, 18, 5, 10, 12, 1, 2, 1];
+  const craneDurBase = [6, 13, 17, 11, 1, 5, 1, 1];
+  const craneLoadLabels = ["<0.2", "0.2-0.4", "0.4-0.6", "0.6-0.8", "0.8-1", "1-1.2", "1.2-2", "≥2"];
+  const craneLoadMids = [100, 300, 500, 700, 900, 1100, 1300, 2200];
+  const craneDurLabels = ["0-2", "2-4", "4-6", "6-8", "8-10", "10-15", "15-30", "≥30"];
+  const craneDurMids = [1, 3, 5, 7, 9, 12.5, 17.5, 37.5];
+
+  function craneMonday(date) {
+    const day = startOfDay(date);
+    const dow = day.getDay();
+    return addDays(day, dow === 0 ? -6 : 1 - dow);
+  }
+
+  function craneThisWeekStart() {
+    return craneMonday(new Date());
+  }
+
+  function cranePad(n) {
+    return String(n).padStart(2, "0");
+  }
+
+  function craneYmd(date) {
+    const day = startOfDay(date);
+    return day.getFullYear() + "-" + cranePad(day.getMonth() + 1) + "-" + cranePad(day.getDate());
+  }
+
+  function craneReportAnchorDate() {
+    if (craneReportAnchor) return startOfDay(craneReportAnchor);
+    if (craneReportKind === "month") {
+      const today = new Date();
+      return new Date(today.getFullYear(), today.getMonth(), 1);
+    }
+    return craneThisWeekStart();
+  }
+
+  function craneReportIsDefault() {
+    const today = startOfDay(new Date());
+    const anchor = craneReportAnchorDate();
+    if (craneReportKind === "month") {
+      return anchor.getFullYear() === today.getFullYear() && anchor.getMonth() === today.getMonth();
+    }
+    return sameDay(craneMonday(anchor), craneThisWeekStart());
+  }
+
+  function craneReportPeriod() {
+    const today = startOfDay(new Date());
+    const anchor = craneReportAnchorDate();
+    if (craneReportKind === "month") {
+      const start = new Date(anchor.getFullYear(), anchor.getMonth(), 1);
+      const monthEnd = new Date(anchor.getFullYear(), anchor.getMonth() + 1, 0);
+      const end = monthEnd > today ? today : monthEnd;
+      const sameYear = start.getFullYear() === today.getFullYear();
+      const name = craneReportIsDefault() ? "本月" : (sameYear ? "" : start.getFullYear() + "年") + (start.getMonth() + 1) + "月";
       return {
-        u,
-        day,
-        trips: craneDelta(day.trips, u.monthTrips),
-        weight: craneDelta(day.weight, u.monthWeight),
-        util: craneDelta(day.util, craneHistAvg(u, "util") + "%"),
-        rate: craneDelta(day.avgRate, craneHistAvg(u, "avgRate") + "%")
+        name,
+        label: start.getFullYear() + "年" + (start.getMonth() + 1) + "月",
+        range: craneYmd(start) + " 至 " + cranePad(end.getMonth() + 1) + "-" + cranePad(end.getDate()),
+        start,
+        end
       };
+    }
+    const start = craneMonday(anchor);
+    const sunday = addDays(start, 6);
+    const end = sunday > today ? today : sunday;
+    const name = craneReportIsDefault() ? "本周" : formatMD(start) + "–" + formatMD(sunday);
+    return {
+      name,
+      label: formatMD(start) + "–" + formatMD(sunday),
+      range: craneYmd(start) + " 至 " + cranePad(end.getMonth() + 1) + "-" + cranePad(end.getDate()),
+      start,
+      end
+    };
+  }
+
+  function craneReportElapsedRatio() {
+    const period = craneReportPeriod();
+    const elapsed = Math.round((startOfDay(period.end) - startOfDay(period.start)) / 86400000) + 1;
+    if (craneReportKind === "month") {
+      const days = new Date(period.start.getFullYear(), period.start.getMonth() + 1, 0).getDate();
+      return Math.min(1, elapsed / days);
+    }
+    return Math.min(1, elapsed / 7);
+  }
+
+  function craneReportDataOffset() {
+    const today = startOfDay(new Date());
+    const anchor = craneReportAnchorDate();
+    if (craneReportKind === "month") {
+      return Math.max(0, (today.getFullYear() - anchor.getFullYear()) * 12 + (today.getMonth() - anchor.getMonth()));
+    }
+    return Math.max(0, Math.round((craneThisWeekStart() - craneMonday(anchor)) / 86400000 / 7));
+  }
+
+  function craneShiftBins(base, seed) {
+    return base.map((value, index) => {
+      if (!value) return (seed + index) % 19 === 0 ? 1 : 0;
+      const delta = ((seed * 3 + index * 5) % 5) - 2;
+      return Math.max(0, value + delta);
     });
-    const sum = (pick) => rows.reduce((total, row) => total + cranePlainNum(pick(row)), 0);
-    const byUtil = [...rows].sort((a, b) => cranePlainNum(b.day.util) - cranePlainNum(a.day.util));
-    const byWeight = [...rows].sort((a, b) => cranePlainNum(b.day.weight) - cranePlainNum(a.day.weight));
+  }
+
+  function craneFitSum(bins, target) {
+    const weights = bins.map((value) => Math.max(value, 0));
+    const sum = weights.reduce((total, value) => total + value, 0);
+    if (!target) return weights.map(() => 0);
+    if (!sum) {
+      const next = weights.slice();
+      next[0] = target;
+      return next;
+    }
+    const next = weights.map((value) => Math.floor(value * target / sum));
+    let left = target - next.reduce((total, value) => total + value, 0);
+    let index = 0;
+    while (left > 0) {
+      next[index % next.length] += 1;
+      left -= 1;
+      index += 1;
+    }
+    return next;
+  }
+
+  function craneReportDevice() {
+    return craneDetails.find((item) => item.id === craneReportDev) || craneDetails[0];
+  }
+
+  function craneReportSeries() {
+    const devIndex = Math.max(0, craneDetails.findIndex((item) => item.id === craneReportDev));
+    const month = craneReportKind === "month";
+    const offset = Math.max(0, craneReportDataOffset());
+    const ratio = craneReportElapsedRatio();
+    let hours;
+    if (!devIndex && !offset && !month) {
+      hours = craneHourBase.slice();
+    } else {
+      const seed = devIndex * 13 + offset * 4 + (month ? 9 : 1);
+      hours = craneShiftBins(craneHourBase, seed).map((value) => value * (month ? 4 : 1));
+    }
+    const full = hours.reduce((sum, value) => sum + value, 0);
+    const target = Math.max(0, Math.round(full * ratio));
+    hours = craneFitSum(hours, target);
+    const seed = devIndex * 13 + offset * 4 + (month ? 9 : 1);
+    const loads = craneFitSum(craneShiftBins(craneLoadBase, seed + 2), target);
+    if (target && devIndex === 2 && !loads[loads.length - 1]) {
+      const donor = loads.findIndex((value) => value > 0);
+      if (donor >= 0) {
+        loads[donor] -= 1;
+        loads[loads.length - 1] = 1;
+      }
+    }
+    const high = loads[loads.length - 1] || 0;
+    const over = target && devIndex === 2 && high ? Math.min(high, month ? 3 : 1) : 0;
     return {
-      rows,
-      date: "2026-" + rows[0].day.date,
-      trips: sum((row) => row.day.trips),
-      weight: sum((row) => row.day.weight).toFixed(2),
-      util: Math.round(rows.reduce((total, row) => total + cranePlainNum(row.day.util), 0) / rows.length),
-      topUtil: byUtil[0],
-      lowUtil: byUtil[byUtil.length - 1],
-      topWeight: byWeight[0]
+      hours,
+      loads,
+      durs: craneFitSum(craneShiftBins(craneDurBase, seed + 5), target),
+      over,
+      overMaxKg: over ? (month ? 5620 : 5350) : 0
     };
   }
 
-  function craneHistoryRows(u) {
-    return u.history.map((d) => ({
-      trips: cranePlainNum(d.trips),
-      weight: cranePlainNum(d.weight),
-      util: cranePlainNum(d.util),
-      rate: cranePlainNum(d.avgRate),
-      work: cranePlainNum(d.work)
-    }));
-  }
-
-  function craneMonthRows(u) {
-    return craneChartSeries(u, 22).filter((row) => row.date !== "10-22").map((row) => ({
-      trips: row.trips,
-      weight: row.weight,
-      util: row.util,
-      rate: row.rate,
-      work: 0
-    }));
-  }
-
-  function craneSpan(days) {
-    const n = days.length || 1;
+  function craneReportStats(series) {
+    const trips = series.hours.reduce((sum, value) => sum + value, 0);
+    const weightKg = series.loads.reduce((sum, value, index) => sum + value * craneLoadMids[index], 0);
+    let maxKg = 0;
+    series.loads.forEach((value, index) => {
+      if (value) maxKg = craneLoadMids[index];
+    });
+    if (series.overMaxKg > maxKg) maxKg = series.overMaxKg;
+    const avgKg = trips ? weightKg / trips : 0;
+    const minutes = series.durs.reduce((sum, value, index) => sum + value * craneDurMids[index], 0);
     return {
-      trips: days.reduce((sum, d) => sum + d.trips, 0),
-      weight: days.reduce((sum, d) => sum + d.weight, 0),
-      util: Math.round(days.reduce((sum, d) => sum + d.util, 0) / n),
-      rate: Math.round(days.reduce((sum, d) => sum + d.rate, 0) / n),
-      work: days.reduce((sum, d) => sum + d.work, 0)
+      trips,
+      weightKg,
+      maxKg,
+      avgKg,
+      avgMin: trips ? minutes / trips : 0,
+      util: avgKg / 1000 / CRANE_RATED_T * 100
     };
   }
 
-  function craneSpanRows(pick) {
-    return craneDetails.map((u) => ({ u, span: craneSpan(pick(u)) }));
+  function craneBarChart(items, color) {
+    const w = 340;
+    const h = 168;
+    const pl = 28;
+    const pr = 8;
+    const pt = 16;
+    const pb = 26;
+    const maxV = Math.max(1, ...items.map((item) => item.value));
+    const step = maxV <= 20 ? 4 : maxV <= 80 ? 10 : 20;
+    const top = Math.max(step, Math.ceil(maxV / step) * step);
+    const plotW = w - pl - pr;
+    const plotH = h - pt - pb;
+    const yAt = (value) => pt + (1 - value / top) * plotH;
+    const gap = items.length > 16 ? 1.5 : 4;
+    const bw = (plotW - gap * (items.length - 1)) / items.length;
+    const grids = [];
+    for (let i = 0; i <= 4; i += 1) {
+      const value = Math.round(top * i / 4);
+      const y = yAt(value);
+      grids.push(`<line x1="${pl}" x2="${w - pr}" y1="${y.toFixed(1)}" y2="${y.toFixed(1)}"/><text x="${pl - 4}" y="${(y + 3).toFixed(1)}" text-anchor="end">${value}</text>`);
+    }
+    const dense = items.length > 16;
+    const shapes = [];
+    const labels = [];
+    items.forEach((item, index) => {
+      const x = pl + index * (bw + gap);
+      const base = yAt(0);
+      const bh = item.value ? Math.max(1.5, base - yAt(item.value)) : 0;
+      const y = base - bh;
+      const cx = x + bw / 2;
+      shapes.push(`<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${Math.max(bw, 1).toFixed(1)}" height="${bh.toFixed(1)}" rx="1.2" fill="${color}"/>`);
+      if (item.value) {
+        shapes.push(`<text class="crane-chart-val" x="${cx.toFixed(1)}" y="${(y - 3).toFixed(1)}" text-anchor="middle" fill="${color}">${item.value}</text>`);
+      }
+      if (item.label) {
+        labels.push(`<text x="${cx.toFixed(1)}" y="${(h - 8).toFixed(1)}" text-anchor="middle">${item.label}</text>`);
+      }
+    });
+    return `<svg class="crane-bars${dense ? " is-hours" : ""}" viewBox="0 0 ${w} ${h}" role="img"><g class="alarm-grid">${grids.join("")}</g>${shapes.join("")}<g class="alarm-x">${labels.join("")}</g></svg>`;
   }
 
-  function craneFleetLines(rows) {
-    const head = `<div class="report-line is-hd"><b>塔机</b><span>吊次</span><span>吊重</span><span>利用率</span><span>负荷</span></div>`;
-    const body = rows.map((row) => `
-      <div class="report-line">
-        <b>${row.name}${row.alarm ? `<em>报警 ${row.alarm}</em>` : ""}</b>
-        <span>${row.trips}</span>
-        <span>${row.weight}</span>
-        <span>${row.util}</span>
-        <span>${row.rate}</span>
-      </div>`).join("");
-    return head + body;
+  function craneReportChart(title, note, svg) {
+    return `<div class="crane-chart"><div class="crane-chart-hd"><span>${title}</span></div><p class="report-chart-note">${note}</p>${svg}</div>`;
   }
 
-  function craneJudgeRows(spanRows, withAlarm) {
-    return spanRows.map((row) => ({
-      name: row.u.name,
-      trips: Math.round(row.span.trips),
-      weight: row.span.weight,
-      util: row.span.util,
-      rate: row.span.rate,
-      alarm: withAlarm ? cranePlainNum(row.u.alarms) : 0,
-      violation: withAlarm ? cranePlainNum(row.u.violations) : 0
-    }));
+  function craneInsightIcon(kind) {
+    if (kind === "night") {
+      return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A7.5 7.5 0 0 1 9.5 4 7.2 7.2 0 1 0 20 14.5Z"/></svg>`;
+    }
+    if (kind === "over") {
+      return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5 2.8 19.5h18.4L12 3.5Z"/><path d="M12 9.2v4.6"/><path d="M12 16.8h.01"/></svg>`;
+    }
+    return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.2v1.6M12 19.2v1.6M4.8 12H3.2M20.8 12h-1.6M6.2 6.2 5 5M19 19l-1.2-1.2M17.8 6.2 19 5M5 19l1.2-1.2"/><circle cx="12" cy="12" r="3.2"/></svg>`;
   }
 
-  function craneConclusions(rows) {
-    const low = reportExtreme(rows, "util", false);
-    const busy = reportExtreme(rows, "trips", true);
-    const heavy = reportExtreme(rows, "weight", true);
-    const loaded = reportExtreme(rows, "rate", true);
-    const trips = rows.reduce((sum, row) => sum + row.trips, 0);
-    const weight = rows.reduce((sum, row) => sum + row.weight, 0);
-    let focus = `${low.name} 利用率 ${low.util}%`;
-    if (low.alarm) focus += ` · 报警 ${low.alarm}次`;
-    if (low.violation) focus += ` · 违章 ${low.violation}次`;
-    const others = rows.filter((row) => row !== low && row.alarm);
-    if (others.length) focus += ` · ${others.map((row) => `${row.name}报警 ${row.alarm}次`).join("，")}`;
-    if (!low.alarm && !low.violation && !others.length) focus += `，${rows.length}台最低`;
-    return reportPoints([
-      { tag: "关注", warn: true, text: focus },
-      { tag: "主力", text: `${busy.name} 吊次 ${busy.trips}次，占 ${reportShare(busy.trips, trips)}%` },
-      { tag: "产出", text: `${heavy.name} 吊重 ${heavy.weight.toFixed(2)}t，占 ${reportShare(heavy.weight, weight)}%` },
-      { tag: "负荷", text: `${loaded.name} ${loaded.rate}%，${rows.length}台最高` }
-    ]);
+  function craneReportInsight(series, stats) {
+    const hours = series.hours;
+    const trips = stats.trips;
+    let peak = 0;
+    hours.forEach((value) => {
+      if (value > peak) peak = value;
+    });
+    const peakHours = hours.map((value, hour) => ({ hour, value })).filter((item) => item.value === peak && peak);
+    const peakLine = peakHours.map((item) => `${item.hour}时${item.value}次`).join("、");
+    const nightHours = [22, 23, 0, 1, 2, 3, 4, 5];
+    const night = nightHours.reduce((sum, hour) => sum + (hours[hour] || 0), 0);
+    const nightRate = trips ? night / trips * 100 : 0;
+    const nightText = `${nightRate.toFixed(1)}%`;
+    const over = series.over || 0;
+    const maxTon = (stats.maxKg / 1000).toFixed(2);
+    const overText = over
+      ? `超过额定 5t，最高 ${maxTon}t`
+      : `未超过额定 5t，最大 ${maxTon}t`;
+    const peakHourText = peakHours.map((item) => `${item.hour}时`).join("、");
+    let advice = `作业高峰在${peakHourText || "—"}，共 ${peak} 次`;
+    advice += nightRate >= 15
+      ? `；夜间（22–5时）占 ${nightText}，建议加强夜间监护`
+      : `；夜间（22–5时）${night} 次，占 ${nightText}`;
+    advice += over ? `；有 ${over} 次超重，建议加强载荷管控` : "；本期无超重";
+    return {
+      peak,
+      peakLine: peakLine || "本期无吊次",
+      night,
+      nightText,
+      over,
+      overText,
+      advice,
+      html: `
+        <section class="report-analysis">
+          <article class="report-insight is-peak">
+            <i class="is-peak">${craneInsightIcon("peak")}</i>
+            <div><strong>作业高峰时段</strong><p>${peakLine || "本期无吊次"}</p></div>
+            <b>${peak}次</b>
+          </article>
+          <article class="report-insight is-night">
+            <i class="is-night">${craneInsightIcon("night")}</i>
+            <div><strong>夜间作业</strong><p>22–5时${night}次占${nightText}</p></div>
+            <b>${night}次</b>
+          </article>
+          <article class="report-insight is-over${over ? " is-alert" : ""}">
+            <i class="is-over${over ? " is-alert" : ""}">${craneInsightIcon("over")}</i>
+            <div><strong>超重情况</strong><p>${overText}</p></div>
+            <b>${over}次</b>
+          </article>
+          <p class="report-advice"><span>分析建议</span>${advice}</p>
+        </section>`
+    };
   }
 
-  function renderCranePeriod(range, trips, weight, util, note, lines) {
+  function craneReportCalHtml(period) {
+    const today = startOfDay(new Date());
+    const minMonth = calMinMonth();
+    const maxMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    if (craneReportKind === "month") {
+      const shownYear = (craneCalMonth || period.start).getFullYear();
+      craneCalMonth = new Date(shownYear, 0, 1);
+      const prevOff = shownYear <= minMonth.getFullYear();
+      const nextOff = shownYear >= today.getFullYear();
+      const cells = [];
+      for (let month = 0; month < 12; month += 1) {
+        const date = new Date(shownYear, month, 1);
+        const blocked = date < minMonth || date > maxMonth;
+        const on = !blocked && period.start.getFullYear() === shownYear && period.start.getMonth() === month;
+        cells.push(`<button class="report-month${on ? " on" : ""}" type="button" data-crane-cal-month="${shownYear}-${month + 1}" ${blocked ? "disabled" : ""}>${month + 1}月</button>`);
+      }
+      return `
+        <div class="cam-cal report-cal">
+          <div class="cam-cal-hd">
+            <button class="cam-cal-nav" type="button" data-crane-cal-nav="prev" ${prevOff ? "disabled" : ""} aria-label="上一年">‹</button>
+            <strong>${shownYear}年</strong>
+            <button class="cam-cal-nav" type="button" data-crane-cal-nav="next" ${nextOff ? "disabled" : ""} aria-label="下一年">›</button>
+          </div>
+          <p class="report-cal-tip">选择月份</p>
+          <div class="report-months">${cells.join("")}</div>
+        </div>`;
+    }
+    const shown = craneCalMonth || new Date(period.start.getFullYear(), period.start.getMonth(), 1);
+    craneCalMonth = new Date(shown.getFullYear(), shown.getMonth(), 1);
+    const y = craneCalMonth.getFullYear();
+    const m = craneCalMonth.getMonth();
+    const prevOff = craneCalMonth <= minMonth;
+    const nextOff = craneCalMonth >= maxMonth;
+    const weeks = [];
+    let monday = craneMonday(new Date(y, m, 1));
+    const last = new Date(y, m + 1, 0);
+    while (monday <= last) {
+      const end = addDays(monday, 6);
+      const blocked = startOfDay(monday) > today;
+      const on = !blocked && sameDay(monday, craneMonday(period.start));
+      weeks.push(`<button class="report-week${on ? " on" : ""}" type="button" data-crane-cal-week="${craneYmd(monday)}" ${blocked ? "disabled" : ""}>${formatMD(monday)}–${formatMD(end)}</button>`);
+      monday = addDays(monday, 7);
+    }
     return `
-      <p class="report-date">${range}</p>
-      <div class="report-kpis">
-        <div class="report-kpi"><span>合计吊次</span><b>${trips}次</b></div>
-        <div class="report-kpi"><span>合计吊重</span><b>${weight}t</b></div>
-        <div class="report-kpi"><span>平均利用率</span><b>${util}%</b></div>
-      </div>
-      ${note}
-      <div class="report-fleet">${lines}</div>`;
+      <div class="cam-cal report-cal">
+        <div class="cam-cal-hd">
+          <button class="cam-cal-nav" type="button" data-crane-cal-nav="prev" ${prevOff ? "disabled" : ""} aria-label="上一月">‹</button>
+          <strong>${y}年${m + 1}月</strong>
+          <button class="cam-cal-nav" type="button" data-crane-cal-nav="next" ${nextOff ? "disabled" : ""} aria-label="下一月">›</button>
+        </div>
+        <p class="report-cal-tip">选择周</p>
+        <div class="report-weeks">${weeks.join("")}</div>
+      </div>`;
   }
 
   function renderCraneReport() {
     const kinds = [
-      { id: "day", name: "日报" },
       { id: "week", name: "周报" },
       { id: "month", name: "月报" }
     ];
     const pills = kinds.map((item) => `
       <button type="button" class="${craneReportKind === item.id ? "on" : ""}" data-crane-span="${item.id}">${item.name}</button>`).join("");
-    let body;
-    if (craneReportKind === "week") {
-      const rows = craneSpanRows(craneHistoryRows);
-      body = renderCranePeriod(
-        "2026-10-15 至 10-21",
-        Math.round(rows.reduce((sum, row) => sum + row.span.trips, 0)),
-        rows.reduce((sum, row) => sum + row.span.weight, 0).toFixed(2),
-        Math.round(rows.reduce((sum, row) => sum + row.span.util, 0) / rows.length),
-        craneConclusions(craneJudgeRows(rows, false)),
-        craneFleetLines(rows.map((row) => ({
-          name: row.u.name,
-          trips: Math.round(row.span.trips) + "次",
-          weight: row.span.weight.toFixed(2) + "t",
-          util: row.span.util + "%",
-          rate: row.span.rate + "%"
-        })))
-      );
-    } else if (craneReportKind === "month") {
-      const rows = craneSpanRows(craneMonthRows);
-      body = renderCranePeriod(
-        "2026-10-01 至 10-21",
-        Math.round(rows.reduce((sum, row) => sum + row.span.trips, 0)),
-        rows.reduce((sum, row) => sum + row.span.weight, 0).toFixed(2),
-        Math.round(rows.reduce((sum, row) => sum + row.span.util, 0) / rows.length),
-        craneConclusions(craneJudgeRows(rows, false)),
-        craneFleetLines(rows.map((row) => ({
-          name: row.u.name,
-          trips: Math.round(row.span.trips) + "次",
-          weight: row.span.weight.toFixed(2) + "t",
-          util: row.span.util + "%",
-          rate: row.span.rate + "%"
-        })))
-      );
-    } else {
-      const m = craneReportModel();
-      body = renderCranePeriod(
-        m.date,
-        m.trips,
-        m.weight,
-        m.util,
-        craneConclusions(m.rows.map((row) => ({
-          name: row.u.name,
-          trips: cranePlainNum(row.day.trips),
-          weight: cranePlainNum(row.day.weight),
-          util: cranePlainNum(row.day.util),
-          rate: cranePlainNum(row.day.avgRate),
-          alarm: cranePlainNum(row.u.alarms),
-          violation: cranePlainNum(row.u.violations)
-        }))),
-        craneFleetLines(m.rows.map((row) => ({
-          name: row.u.name,
-          trips: row.day.trips,
-          weight: row.day.weight,
-          util: row.day.util,
-          rate: row.day.avgRate,
-          alarm: cranePlainNum(row.u.alarms) > 0 ? row.u.alarms : ""
-        })))
-      );
-    }
+    const period = craneReportPeriod();
+    const preset = craneReportKind === "month" ? "本月" : "本周";
+    const picked = !craneReportIsDefault();
+    const device = craneReportDevice();
+    const tabs = craneDetails.map((item) => `
+      <button type="button" class="${item.id === device.id ? "on" : ""}" data-crane-report-dev="${item.id}">${craneMark()}<span>${item.tab}</span></button>`).join("");
+    const series = craneReportSeries();
+    const stats = craneReportStats(series);
+    const insight = craneReportInsight(series, stats);
+    const kpis = [
+      ["累计吊次", stats.trips + "次"],
+      ["累计吊重", (stats.weightKg / 1000).toFixed(2) + "t"],
+      ["峰值载荷", (stats.maxKg / 1000).toFixed(2) + "t"],
+      ["平均载荷", (stats.avgKg / 1000).toFixed(2) + "t"],
+      ["平均作业时长", stats.avgMin.toFixed(1) + "分钟"],
+      ["平均载荷利用率", stats.util.toFixed(1) + "%"]
+    ].map(([label, value]) => `<div class="report-kpi"><span>${label}</span><b>${value}</b></div>`).join("");
+    const hours = series.hours.map((value, index) => ({
+      label: String(index).padStart(2, "0"),
+      value
+    }));
+    const loads = series.loads.map((value, index) => ({ label: craneLoadLabels[index], value }));
+    const durs = series.durs.map((value, index) => ({ label: craneDurLabels[index], value }));
     return `
-      <section class="uav-block">
+      <section class="uav-block crane-report">
         <div class="uav-tabs crane-span">${pills}</div>
-        ${body}
+        <div class="report-pick">
+          <button class="cam-day${picked ? "" : " on"}" type="button" data-crane-latest>${preset}</button>
+          <button class="cam-day cam-day-pick${picked || craneCalOpen ? " on" : ""}" type="button" data-crane-cal>
+            ${picked ? period.name : "选日期"}${calIco}
+          </button>
+          ${craneCalOpen ? craneReportCalHtml(period) : ""}
+        </div>
+        <p class="report-period-range">${period.range}</p>
+        <div class="crane-tabs is-report">${tabs}</div>
+        <h3 class="report-part is-stat">数据统计</h3>
+        <div class="report-kpis is-six">${kpis}</div>
+        <h3 class="report-part is-risk">作业风险分析</h3>
+        ${insight.html}
+        <h3 class="report-part is-chart">分布可视化</h3>
+        ${craneReportChart("总吊次时段分布", "按每次吊次的开始时间（小时）统计", craneBarChart(hours, "#4C9FFF"))}
+        ${craneReportChart("峰值载荷分布", "按每次吊次的峰值载荷分箱，单位 t", craneBarChart(loads, "#F5A524"))}
+        ${craneReportChart("作业时长分布", "按单次吊次时长（分钟）分箱统计", craneBarChart(durs, "#3DDC84"))}
         <button class="report-share" type="button" data-crane-share>导出分享</button>
       </section>`;
   }
 
+
   function craneReportPlain() {
-    const kindName = craneReportKind === "week" ? "周报" : craneReportKind === "month" ? "月报" : "日报";
-    const root = document.createElement("div");
-    root.innerHTML = renderCraneReport();
-    const range = root.querySelector(".report-date").textContent;
-    const kpis = [...root.querySelectorAll(".report-kpi")].map((el) => el.innerText.replace(/\n/g, " ")).join("，");
-    const note = [...root.querySelectorAll(".report-points li")].map((el) => el.innerText.replace(/\s+/g, " ").trim());
-    const lines = [`塔机${kindName} ${range}`, "高新二路项目", kpis, "结论", ...note, ""];
-    [...root.querySelectorAll(".report-line:not(.is-hd)")].forEach((row) => {
-      lines.push(row.innerText.replace(/\n/g, " "));
-    });
-    return lines.join("\n");
+    const kindName = craneReportKind === "month" ? "月报" : "周报";
+    const period = craneReportPeriod();
+    const device = craneReportDevice();
+    const series = craneReportSeries();
+    const stats = craneReportStats(series);
+    const insight = craneReportInsight(series, stats);
+    return [
+      `塔机${kindName} ${period.range}`,
+      device.name,
+      "数据统计",
+      `累计吊次 ${stats.trips}次`,
+      `累计吊重 ${(stats.weightKg / 1000).toFixed(2)}t`,
+      `峰值载荷 ${(stats.maxKg / 1000).toFixed(2)}t`,
+      `平均载荷 ${(stats.avgKg / 1000).toFixed(2)}t`,
+      `平均作业时长 ${stats.avgMin.toFixed(1)}分钟`,
+      `平均载荷利用率 ${stats.util.toFixed(1)}%`,
+      "作业风险分析",
+      `作业高峰时段 ${insight.peakLine}`,
+      `夜间作业 22–5时${insight.night}次占${insight.nightText}`,
+      `超重情况 ${insight.over}次 ${insight.overText}`,
+      `分析建议 ${insight.advice}`
+    ].join("\n");
   }
 
-  function shareReportFile(title, text, name) {
+  function shareReportFile(title, text, name, word) {
     const file = new File([text], name, { type: "text/plain" });
     const done = (msg) => showToast(msg);
     const download = () => {
@@ -2514,22 +2735,25 @@
       const payload = navigator.canShare && navigator.canShare({ files: [file] })
         ? { title, text, files: [file] }
         : { title, text };
-      navigator.share(payload).then(() => done("日报已分享")).catch((err) => {
+      navigator.share(payload).then(() => done((word || "日报") + "已分享")).catch((err) => {
         if (err && err.name === "AbortError") return;
         download();
         copy();
-        done("日报已导出，并复制到剪贴板");
+        done((word || "日报") + "已导出，并复制到剪贴板");
       });
       return;
     }
     download();
     copy();
-    done("日报已导出，并复制到剪贴板");
+    done((word || "日报") + "已导出，并复制到剪贴板");
   }
 
   function shareCraneReport() {
-    const m = craneReportModel();
-    shareReportFile(`塔机报表 ${m.date}`, craneReportPlain(), `塔机报表-${m.date}.txt`);
+    const kindName = craneReportKind === "month" ? "月报" : "周报";
+    const period = craneReportPeriod();
+    const device = craneReportDevice();
+    const fileName = `${device.name}${kindName}-${period.label.replace(/\//g, "-")}.txt`;
+    shareReportFile(`${device.name}${kindName} ${period.range}`, craneReportPlain(), fileName, kindName);
   }
 
   function shareLiftReport() {
@@ -2550,7 +2774,7 @@
     subBack = openCranePage;
     subpage.classList.remove("is-alarm");
     subpage.classList.add("is-dark");
-    paintSub("塔机日报", renderCraneReport());
+    paintSub("塔机报表", renderCraneReport());
   }
 
   function openCranePage() {
@@ -2558,7 +2782,11 @@
     craneTab = "2";
     craneChartTab = "2";
     cranePageTab = "live";
-    craneReportKind = "day";
+    craneReportKind = "week";
+    craneReportDev = "2";
+    craneReportAnchor = null;
+    craneCalOpen = false;
+    craneCalMonth = null;
     subBack = null;
     subpage.classList.remove("is-alarm");
     subpage.classList.add("is-dark");
@@ -3341,7 +3569,64 @@
     }
     const craneSpanBtn = e.target.closest("[data-crane-span]");
     if (craneSpanBtn) {
-      craneReportKind = craneSpanBtn.dataset.craneSpan;
+      craneReportKind = craneSpanBtn.dataset.craneSpan === "month" ? "month" : "week";
+      craneReportAnchor = null;
+      craneCalOpen = false;
+      craneCalMonth = null;
+      paintSub("智能塔机", renderCrane());
+      return;
+    }
+    const craneReportDevBtn = e.target.closest("[data-crane-report-dev]");
+    if (craneReportDevBtn) {
+      craneReportDev = craneReportDevBtn.dataset.craneReportDev;
+      craneCalOpen = false;
+      paintSub("智能塔机", renderCrane());
+      return;
+    }
+    const craneLatestBtn = e.target.closest("[data-crane-latest]");
+    if (craneLatestBtn) {
+      craneReportAnchor = null;
+      craneCalOpen = false;
+      craneCalMonth = null;
+      paintSub("智能塔机", renderCrane());
+      return;
+    }
+    const craneCalBtn = e.target.closest("[data-crane-cal]");
+    if (craneCalBtn) {
+      craneCalOpen = !craneCalOpen;
+      if (craneCalOpen) {
+        const period = craneReportPeriod();
+        craneCalMonth = craneReportKind === "month"
+          ? new Date(period.start.getFullYear(), 0, 1)
+          : new Date(period.start.getFullYear(), period.start.getMonth(), 1);
+      }
+      paintSub("智能塔机", renderCrane());
+      return;
+    }
+    const craneCalNav = e.target.closest("[data-crane-cal-nav]");
+    if (craneCalNav && !craneCalNav.disabled) {
+      const step = craneCalNav.dataset.craneCalNav === "prev" ? -1 : 1;
+      const base = craneCalMonth || new Date();
+      craneCalMonth = craneReportKind === "month"
+        ? new Date(base.getFullYear() + step, 0, 1)
+        : new Date(base.getFullYear(), base.getMonth() + step, 1);
+      craneCalOpen = true;
+      paintSub("智能塔机", renderCrane());
+      return;
+    }
+    const craneCalWeek = e.target.closest("[data-crane-cal-week]");
+    if (craneCalWeek && !craneCalWeek.disabled) {
+      const parts = craneCalWeek.dataset.craneCalWeek.split("-").map(Number);
+      craneReportAnchor = new Date(parts[0], parts[1] - 1, parts[2]);
+      craneCalOpen = false;
+      paintSub("智能塔机", renderCrane());
+      return;
+    }
+    const craneCalMonthBtn = e.target.closest("[data-crane-cal-month]");
+    if (craneCalMonthBtn && !craneCalMonthBtn.disabled) {
+      const parts = craneCalMonthBtn.dataset.craneCalMonth.split("-").map(Number);
+      craneReportAnchor = new Date(parts[0], parts[1] - 1, 1);
+      craneCalOpen = false;
       paintSub("智能塔机", renderCrane());
       return;
     }
